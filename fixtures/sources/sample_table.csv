@@ -1,0 +1,4 @@
+metric,segment,value,as_of_date,citation_note
+indexed_documents,public,42,2026-05-20,Use for table-value support tests.
+validator_repairs,public,3,2026-05-20,Use for partial evidence examples.
+restricted_hits,internal,7,2026-05-20,Do not expose outside authorized access tests.

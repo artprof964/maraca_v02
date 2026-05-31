@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-orchestrated-hybrid-retrieval-center"
+version = "0.1.0"
+description = "Foundation package layout for an agent-orchestrated hybrid retrieval center."
+readme = "research/project_summary_outline_AgentOrchHybrid.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+backend = [
+    "langgraph>=1.2.2",
+    "llama-index-core>=0.14.22",
+    "neo4j>=6.2.0",
+    "qdrant-client>=1.18.0",
+]
+test = ["pytest>=8"]
+full = [
+    "langgraph>=1.2.2",
+    "llama-index-core>=0.14.22",
+    "neo4j>=6.2.0",
+    "pytest>=8",
+    "qdrant-client>=1.18.0",
+]
+
+[project.scripts]
+rag-center-health = "backend_app.health:main"
+rag-center-smoke = "backend_app.manual:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"

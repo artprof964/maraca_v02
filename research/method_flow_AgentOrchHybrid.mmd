@@ -1,0 +1,99 @@
+flowchart TD
+    LOG["Shared logs and error envelopes"]
+    A["Source registration"] --> B["Source registry"]
+    A --> L1["Source registry log"]
+    L1 --> LOG
+    B --> C["Ingestion job"]
+    C --> L2["Ingestion log"]
+    L2 --> LOG
+    C --> AC1["Access and license check"]
+    AC1 --> E1{"Access/license ok?"}
+    E1 -- "No" --> ERR1["Block or pending review"]
+    ERR1 --> LOG
+    E1 -- "Yes" --> D["Extract and normalize content"]
+    D --> E["Create document records"]
+    E --> F["Chunk documents"]
+    F --> QG1["Ingestion quality gate"]
+    QG1 --> E2{"Quality ok or partial allowed?"}
+    E2 -- "No" --> ERR2["Fail ingestion job"]
+    ERR2 --> LOG
+    E2 -- "Yes" --> G["Enrichment"]
+    G --> L3["Enrichment log"]
+    L3 --> LOG
+    G --> G1["Generate embeddings"]
+    G --> G2["Extract sparse terms"]
+    G --> G3["Optional graph extraction"]
+    G1 --> H["Storage commit"]
+    G2 --> H
+    G3 --> H
+    H --> L4["Storage log"]
+    L4 --> LOG
+    H --> QG2["Verify storage and access metadata"]
+    QG2 --> E3{"Commit verified?"}
+    E3 -- "No" --> ERR3["Retry, rollback, or mark degraded"]
+    ERR3 --> LOG
+    E3 -- "Yes" --> H1["Vector store"]
+    E3 -- "Yes" --> H2["Keyword or sparse index"]
+    E3 -- "Yes" --> H3["Graph store"]
+    E3 -- "Yes" --> H4["Metadata and audit store"]
+
+    Q["User query"] --> R["Query intake"]
+    R --> P["Planner agent"]
+    P --> L5["Planner log"]
+    L5 --> LOG
+    P --> P1["Classify query type, risk, freshness"]
+    P1 --> P2["Select retrieval modes and budget"]
+    P2 --> NR{"No retrieval?"}
+    NR -- "Yes" --> DR["Direct response record"]
+    DR --> OUT
+    NR -- "No" --> S["Retrieval execution"]
+    S --> L6["Retrieval log"]
+    L6 --> LOG
+
+    S --> VEC["Vector retrieval"]
+    S --> KEY["Keyword retrieval"]
+    S --> GR["Graph traversal"]
+    S --> DB["Structured lookup"]
+    S --> EXT["External retrieval when needed"]
+    EXT --> EXG["Register external result as governed source"]
+
+    VEC --> M["Merge candidates"]
+    KEY --> M
+    GR --> M
+    DB --> M
+    EXG --> M
+
+    M --> AF["Apply access, license, and freshness filters"]
+    AF --> RR["Rerank and deduplicate evidence"]
+    RR --> L7["Ranking log"]
+    L7 --> LOG
+    RR --> E4{"Reranker ok?"}
+    E4 -- "No" --> RF["Fallback to normalized retrieval scores"]
+    RF --> VAL
+    E4 -- "Yes" --> VAL["Validator agent"]
+    VAL --> L8["Validation log"]
+    L8 --> LOG
+    VAL --> CLM["Claim-level support check"]
+    CLM --> PASS{"Evidence passes?"}
+    PASS -- "No" --> LOOP{"Repair attempts left?"}
+    LOOP -- "Yes" --> FIX["Repair action"]
+    FIX --> P
+    LOOP -- "No" --> UNC["Stop with uncertainty or failure reason"]
+    UNC --> OUT
+    PASS -- "Clarify" --> CL["Ask clarification"]
+    CL --> R
+    PASS -- "Yes" --> SYN["Synthesis agent"]
+    SYN --> L9["Synthesis log"]
+    L9 --> LOG
+    SYN --> OUT["Cited answer with limitations"]
+    OUT --> FB["Feedback and evaluation"]
+    FB --> L10["Feedback and evaluation log"]
+    L10 --> LOG
+    FB --> REVIEW["Human or policy review for system changes"]
+    REVIEW --> B
+    REVIEW --> P
+
+    VAL --> VR["Validation record"]
+    CLM --> CR["Claim records"]
+    OUT --> AR["Answer record"]
+    FB --> ER["Evaluation store"]

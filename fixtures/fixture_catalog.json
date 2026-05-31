@@ -1,0 +1,199 @@
+{
+  "catalog_version": "0.1",
+  "created_for": "Milestone 0 shared deterministic source fixtures",
+  "fixtures": [
+    {
+      "id": "fixture_a_public_document",
+      "fixture_set": "A",
+      "source_name": "Public Retrieval Primer",
+      "source_type": "document",
+      "access": "public",
+      "license": "allowed",
+      "reliability": "high",
+      "freshness": {
+        "policy": "static",
+        "as_of_date": "2026-05-20",
+        "note": "Stable public fixture for citation and keyword tests."
+      },
+      "status": "active",
+      "path": "sources/public_document.md",
+      "external_link": "https://example.test/fixtures/public-retrieval-primer",
+      "citation": "Public Retrieval Primer, paragraph 2",
+      "expected_behavior": "ingest_index_retrieve_and_cite"
+    },
+    {
+      "id": "fixture_b_restricted_source",
+      "fixture_set": "B",
+      "source_name": "Confidential Ranking Memo",
+      "source_type": "document",
+      "access": "restricted",
+      "license": "restricted",
+      "reliability": "medium",
+      "freshness": {
+        "policy": "manual",
+        "as_of_date": "2026-05-20",
+        "note": "Access-control fixture with attractive evidence that must be filtered for unauthorized users."
+      },
+      "status": "active",
+      "path": "sources/restricted_source.md",
+      "external_link": null,
+      "citation": "Confidential Ranking Memo, restricted paragraph",
+      "expected_behavior": "filter_before_ranking_for_unauthorized_access_scope"
+    },
+    {
+      "id": "fixture_c_stale_source",
+      "fixture_set": "C",
+      "source_name": "Legacy Integration Note",
+      "source_type": "document",
+      "access": "public",
+      "license": "allowed",
+      "reliability": "high",
+      "freshness": {
+        "policy": "scheduled",
+        "as_of_date": "2021-01-15",
+        "freshness_sla": "P90D",
+        "note": "Intentionally stale reliable evidence for freshness validators."
+      },
+      "status": "deprecated",
+      "path": "sources/stale_source.md",
+      "external_link": "https://example.test/fixtures/legacy-integration-note",
+      "citation": "Legacy Integration Note, paragraph 1",
+      "expected_behavior": "flag_stale_when_freshness_is_required"
+    },
+    {
+      "id": "fixture_d_conflict_primary",
+      "fixture_set": "D",
+      "source_name": "Capacity Policy Primary",
+      "source_type": "document",
+      "access": "public",
+      "license": "allowed",
+      "reliability": "high",
+      "freshness": {
+        "policy": "static",
+        "as_of_date": "2026-05-20",
+        "note": "Primary source for contradiction tests."
+      },
+      "status": "active",
+      "path": "sources/conflict_primary.md",
+      "external_link": "https://example.test/fixtures/capacity-policy-primary",
+      "citation": "Capacity Policy Primary, paragraph 1",
+      "expected_behavior": "detect_contradiction_with_fixture_d_conflict_secondary"
+    },
+    {
+      "id": "fixture_d_conflict_secondary",
+      "fixture_set": "D",
+      "source_name": "Capacity Policy Secondary",
+      "source_type": "document",
+      "access": "public",
+      "license": "allowed",
+      "reliability": "medium",
+      "freshness": {
+        "policy": "static",
+        "as_of_date": "2026-05-20",
+        "note": "Contradictory source for validator tests."
+      },
+      "status": "active",
+      "path": "sources/conflict_secondary.md",
+      "external_link": "https://example.test/fixtures/capacity-policy-secondary",
+      "citation": "Capacity Policy Secondary, paragraph 1",
+      "expected_behavior": "detect_contradiction_with_fixture_d_conflict_primary"
+    },
+    {
+      "id": "fixture_e_graph_source",
+      "fixture_set": "E",
+      "source_name": "Graph Relationship Fixture",
+      "source_type": "document",
+      "access": "public",
+      "license": "allowed",
+      "reliability": "medium",
+      "freshness": {
+        "policy": "static",
+        "as_of_date": "2026-05-20",
+        "note": "Entity and relation fixture for graph linking tests."
+      },
+      "status": "active",
+      "path": "sources/graph_source.md",
+      "external_link": "https://example.test/fixtures/graph-relationship-fixture",
+      "citation": "Graph Relationship Fixture",
+      "expected_behavior": "extract_entities_and_relations_linked_to_source_chunks"
+    },
+    {
+      "id": "fixture_f_malformed_source",
+      "fixture_set": "F",
+      "source_name": "Malformed HTML Export",
+      "source_type": "web",
+      "access": "public",
+      "license": "allowed",
+      "reliability": "low",
+      "freshness": {
+        "policy": "manual",
+        "as_of_date": "2026-05-20",
+        "note": "Broken markup and incomplete JSON-like body for failure-path tests."
+      },
+      "status": "failed",
+      "path": "sources/malformed_source.html",
+      "external_link": "https://example.test/fixtures/malformed-export",
+      "citation": null,
+      "expected_behavior": "fail_or_partial_with_error_envelope"
+    },
+    {
+      "id": "fixture_g_external_web_page",
+      "fixture_set": "G",
+      "source_name": "Acme Public Status Page",
+      "source_type": "web",
+      "access": "public",
+      "license": "allowed",
+      "reliability": "medium",
+      "freshness": {
+        "policy": "scheduled",
+        "as_of_date": "2026-05-20",
+        "retrieved_at": "2026-05-20T09:15:00Z",
+        "note": "External web fixture with URL and retrieval date."
+      },
+      "status": "active",
+      "path": "sources/public_web_page.html",
+      "external_link": "https://example.test/acme/status",
+      "citation": "Acme Public Status Page, support window paragraph",
+      "expected_behavior": "register_as_governed_external_source_before_ranking"
+    },
+    {
+      "id": "fixture_table_csv",
+      "fixture_set": "A",
+      "source_name": "Sample Metrics Table",
+      "source_type": "table",
+      "access": "internal",
+      "license": "allowed",
+      "reliability": "medium",
+      "freshness": {
+        "policy": "static",
+        "as_of_date": "2026-05-20",
+        "note": "CSV table fixture for table-value support tests."
+      },
+      "status": "active",
+      "path": "sources/sample_table.csv",
+      "external_link": "https://example.test/fixtures/sample-metrics-table",
+      "citation": "Sample Metrics Table, indexed_documents row",
+      "expected_behavior": "support_internal_table_value_evidence_with_access_scope"
+    },
+    {
+      "id": "fixture_api_json",
+      "fixture_set": "G",
+      "source_name": "API Metadata Response",
+      "source_type": "api",
+      "access": "public",
+      "license": "allowed",
+      "reliability": "medium",
+      "freshness": {
+        "policy": "scheduled",
+        "as_of_date": "2026-05-20",
+        "retrieved_at": "2026-05-20T09:00:00Z",
+        "note": "Dependency-free API-like JSON response fixture."
+      },
+      "status": "active",
+      "path": "sources/api_response.json",
+      "external_link": "https://api.example.test/retrieval-metadata",
+      "citation": "API Metadata Response, api-item-001",
+      "expected_behavior": "parse_api_like_json_and_preserve_citation_fields"
+    }
+  ]
+}

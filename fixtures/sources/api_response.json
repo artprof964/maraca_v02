@@ -1,0 +1,13 @@
+{
+  "service": "acme-retrieval-metadata",
+  "retrieved_at": "2026-05-20T09:00:00Z",
+  "items": [
+    {
+      "id": "api-item-001",
+      "name": "freshness_policy",
+      "value": "recent evidence required for operational answers",
+      "citation": "https://api.example.test/retrieval-metadata/items/api-item-001"
+    }
+  ],
+  "next_page": null
+}

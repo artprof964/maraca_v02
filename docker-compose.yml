@@ -1,3 +1,5 @@
+name: maraca-1
+
 services:
   qdrant:
     image: qdrant/qdrant:v1.18.0

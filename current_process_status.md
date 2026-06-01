@@ -3,6 +3,326 @@
 Date: 2026-05-29
 Workspace: `C:\Users\Fred_U\Documents\MA-RAG-CAG-Graph`
 
+## Active Agent Workflow Tracker
+
+Date: 2026-05-31
+Workspace: `C:\Users\fredo\git_repos\MARACA\maraca_V02`
+Model policy: use GPT-5.5 medium for newly spawned agents.
+
+### Current Workflow
+
+Status: validating.
+Finished: false.
+
+Goal:
+
+- Read existing files.
+- Use an outline agent to summarize the project.
+- Use an adversarial agent to review risks.
+- Use a planning agent to write the final process and plan.
+- Use a worker agent for implementation.
+- Use a validator agent to check the implementation.
+- Track testing and finished state explicitly.
+
+Agent results:
+
+- Outline agent: complete. Confirmed MARACA v02 is complete through Milestone 13 and current next work is productionization, generalization, and repair-loop traceability.
+- Adversarial review agent: complete. Highest risks are Neo4j real-service parity, Qdrant collection bootstrap, env knob wiring, durable runtime state, and absolute ingestion paths.
+- Process/plan agent: complete. Recommended tracker fields are status, risk level, owner, implementation scope, test gate, validator result, adversarial result, trace links, and finished flag.
+- Implementation worker: complete. Added observable repair-loop execution trace state to planned-query results.
+- Validator agent: complete. Static review passed with no blocking findings; Python/pytest execution remains blocked locally.
+
+### Current Implementation Task
+
+Task id: `repair-loop-trace-2026-05-31`
+Status: validating.
+Finished: false.
+Owner: implementation worker, followed by validator agent.
+Risk level: medium.
+
+Scope:
+
+- `src/planning/__init__.py`
+- `tests/test_planner_orchestration.py`
+
+Implemented:
+
+- Added `RepairExecutionTrace`.
+- Exposed optional `PlannedQueryResult.repair_trace`.
+- Populates the trace when validation returns `REPAIR_NEEDED` or `FAIL`.
+- Trace captures validation status, repair action, repair attempt bounds, previous actions, fallback actions, exhaustion state, and whether a retrieval rerun was triggered.
+- Added focused planner orchestration tests for repair-needed and exhausted repair states.
+
+Testing:
+
+- `python -m pytest tests\test_planner_orchestration.py -q`: blocked because `python` resolves to the Windows Store shim and no interpreter is available.
+- `python -m unittest tests.test_planner_orchestration`: blocked for the same reason.
+- `.venv\Scripts\python.exe`: not present.
+- `py`: not present.
+
+Validator result: pass by static GPT-5.5-medium review.
+Adversarial result: complete for project-level review, not yet re-run on this implementation.
+Finished flag rule: keep `Finished: false` until implementation, reproducible tests, validator pass, and adversarial review pass are all complete.
+
+### Next Recommended Productionization Tasks
+
+1. Qdrant collection bootstrap hardening.
+2. Neo4j real Cypher parity for graph indexing and traversal.
+3. Wire documented `QDRANT_COLLECTION` and `NEO4J_DATABASE` env knobs through health/runtime adapters.
+4. Decide which runtime state must survive durable restart.
+5. Lock down absolute local ingestion paths before operator-facing source registration.
+
+## Full Backend Install and Interface Tracker
+
+Date: 2026-05-31
+Status: planning.
+Finished: false.
+Audit agent: complete using GPT-5.5 medium.
+
+### Existing Full Backend Surfaces
+
+Package and install:
+
+- `pyproject.toml` defines Python `>=3.11`, package extras, console scripts, pytest settings, and `src/` package discovery.
+- Optional extras:
+  - `backend`: `langgraph>=1.2.2`, `llama-index-core>=0.14.22`, `neo4j>=6.2.0`, `qdrant-client>=1.18.0`.
+  - `test`: `pytest>=8`.
+  - `full`: backend extras plus pytest.
+
+Runtime services:
+
+- `docker-compose.yml` defines Qdrant `qdrant/qdrant:v1.18.0` on ports `6333` and `6334`.
+- `docker-compose.yml` defines Neo4j `neo4j:5.26-community` on ports `7474` and `7687`, with APOC enabled.
+- `.env.example` defines `QDRANT_URL`, `QDRANT_API_KEY`, `QDRANT_COLLECTION`, `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD`, `NEO4J_DATABASE`, `RAG_STORAGE_ROOT`, and `RAG_MODEL_PROFILE`.
+
+Backend interfaces:
+
+- `src/backend_app/health.py`: `rag-center-health` CLI for optional imports, env checks, Docker checks, Qdrant, Neo4j, and LangGraph-compatible runtime health.
+- `src/backend_app/manual.py`: `rag-center-smoke` CLI for fixture-backed keyword/vector/planned-query smoke flow.
+- `src/storage/adapters.py`: backend adapter contracts, health checks, operation results, registry, selection, and local backend registry.
+- `src/storage/durable.py`: local JSON/JSONL durable repository baseline.
+- `src/storage/vector_runtime.py`: in-memory executable vector backend adapter.
+- `src/storage/qdrant_runtime.py`: Qdrant-compatible vector adapter with injected-client support.
+- `src/storage/neo4j_runtime.py`: Neo4j-compatible graph adapter with injected-client support.
+- `src/planning/orchestration_runtime.py`: LangGraph-compatible orchestration adapter and local planned-query fallback.
+- `src/retrieval/indexing.py` and `src/retrieval/execution.py`: deterministic embedding, sparse indexing, keyword/vector/hybrid/graph retrieval, access filtering, and merge execution.
+
+Setup and test scripts:
+
+- `scripts/setup_full_backend.ps1`: creates `.venv`, installs `.[full]`, copies `.env`, optionally installs Docker Desktop, optionally starts services, then runs health and smoke checks.
+- `scripts/test_full_backend.ps1`: runs `pip check`, health, optional strict service health, smoke, unittest discovery, and pytest.
+
+Current local machine probe:
+
+- `.env`: present.
+- `.env.example`: present.
+- `.venv\Scripts\python.exe`: missing.
+- `python`: present only as Windows Store shim, not a usable interpreter.
+- `py`: missing.
+- Docker CLI: present.
+- `docker compose ps`: no Qdrant or Neo4j services currently running.
+
+Exact installed stack probe:
+
+- Current checkout `C:\Users\fredo\git_repos\MARACA\maraca_V02` does not have a local `.venv`.
+- Sibling checkout `C:\Users\fredo\git_repos\MARACA\MARACA-1` has an existing `.venv`.
+- Existing usable interpreter found: `C:\Users\fredo\git_repos\MARACA\MARACA-1\.venv\Scripts\python.exe`.
+- Interpreter version: Python `3.12.13`.
+- Pip version in that venv: `25.0.1`.
+- Editable package installed in that venv:
+  - `agent-orchestrated-hybrid-retrieval-center==0.1.0`
+  - Editable project location: `C:\Users\fredo\git_repos\MARACA\MARACA-1`
+- Full backend Python packages installed in that venv:
+  - `qdrant-client==1.18.0`
+  - `neo4j==6.2.0`
+  - `langgraph==1.2.2`
+  - `llama-index-core==0.14.22`
+  - `pytest==9.0.3`
+  - `setuptools==82.0.1`
+- Console scripts found in that venv:
+  - `C:\Users\fredo\git_repos\MARACA\MARACA-1\.venv\Scripts\rag-center-health.exe`
+  - `C:\Users\fredo\git_repos\MARACA\MARACA-1\.venv\Scripts\rag-center-smoke.exe`
+- Codex bundled Python exists at `C:\Users\fredo\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe`, version Python `3.12.13`, but it does not have `qdrant-client`, `neo4j`, `langgraph`, `llama-index-core`, or `pytest`.
+- `pip check` in the sibling `MARACA-1` venv reports: no broken requirements found.
+
+Exact Docker stack probe:
+
+- Docker CLI installed: Docker `29.5.2`.
+- Docker Compose installed: `v5.1.3`.
+- Required images present locally:
+  - `qdrant/qdrant:v1.18.0`
+  - `neo4j:5.26-community`
+- Related extra images also present locally:
+  - `qdrant/qdrant:v1.15.4`
+  - `qdrant/qdrant:v1.12.5`
+  - `postgres:16-alpine`
+  - `redis:7-alpine`
+  - `minio/minio:RELEASE.2025-01-20T14-49-07Z`
+  - `openpolicyagent/opa:0.70.0`
+- MARACA containers found:
+  - `rag-center-qdrant`, image `qdrant/qdrant:v1.18.0`, status `exited`, exit code `255`, finished `2026-05-30T23:48:00Z`.
+  - `rag-center-neo4j`, image `neo4j:5.26-community`, status `exited`, exit code `255`, finished `2026-05-30T23:48:00Z`.
+- MARACA Docker volumes found:
+  - `maraca-1_qdrant_data`
+  - `maraca-1_neo4j_data`
+  - `maraca-1_neo4j_logs`
+- Qdrant logs show collection `evidence_chunks` was previously loaded and reachable while the container was running.
+- Neo4j logs show Neo4j `5.26.26` previously started with Bolt on `7687` and HTTP on `7474`.
+- Current service state: Qdrant and Neo4j are installed as images/containers/volumes but are not running.
+
+Validation using found stack without installing software:
+
+- Command style: used `MARACA-1\.venv\Scripts\python.exe` with `PYTHONPATH` pointed at `maraca_V02\src` and `PYTHONDONTWRITEBYTECODE=1`.
+- Lenient health check: passed optional imports, Docker availability, env checks, and LangGraph-compatible runtime; Qdrant/Neo4j strict service checks were not run in lenient mode.
+- Strict health check: failed only because Qdrant and Neo4j services are not running on `localhost:6333` and `localhost:7687`.
+- Smoke check: passed against the `maraca_V02` source path with one keyword candidate, keyword execution mode, one citation, and an answer.
+- No software was installed during this probe.
+
+Service start result:
+
+- Date: 2026-06-01.
+- Goal: start all necessary backend services.
+- Necessary services from `docker-compose.yml`: `qdrant`, `neo4j`.
+- Initial `docker compose up -d qdrant neo4j` from `maraca_V02` created the `maraca_v02_default` network and new empty `maraca_v02_*` volumes, then stopped on container-name conflict because `rag-center-qdrant` and `rag-center-neo4j` already existed.
+- No containers or volumes were removed.
+- Existing containers started instead:
+  - `rag-center-qdrant`
+  - `rag-center-neo4j`
+- Running containers:
+  - `rag-center-qdrant`, image `qdrant/qdrant:v1.18.0`, ports `6333` and `6334`.
+  - `rag-center-neo4j`, image `neo4j:5.26-community`, ports `7474` and `7687`.
+- Port checks passed:
+  - `localhost:6333`
+  - `localhost:7474`
+  - `localhost:7687`
+- Qdrant collection check passed:
+  - Collection: `evidence_chunks`
+  - Status: `green`
+  - Vector size: `32`
+  - Distance: `Cosine`
+- Strict backend health passed using `MARACA-1\.venv\Scripts\python.exe` with `PYTHONPATH` pointed at `maraca_V02\src`:
+  - `qdrant-client`: installed.
+  - `neo4j`: installed.
+  - `langgraph`: installed.
+  - `llama-index-core`: installed.
+  - Docker Compose: available.
+  - Qdrant service: ready.
+  - Neo4j service: ready.
+  - LangGraph-compatible runtime: ready.
+- Finished: true for service startup and strict health verification.
+
+Service conflict fix:
+
+- Date: 2026-06-01.
+- Conflict found: plain `docker compose` from `maraca_V02` originally used project name `maraca_v02`, while the existing fixed-name service containers were labeled for project `maraca-1`.
+- Fix applied: added `COMPOSE_PROJECT_NAME=maraca-1` to the local ignored `.env` file.
+- Result: plain `docker compose ps --all` from `maraca_V02` now shows the existing running `rag-center-qdrant` and `rag-center-neo4j` containers.
+- Cleanup: removed unattached failed-start resources created during the earlier conflict:
+  - `maraca_v02_qdrant_data`
+  - `maraca_v02_neo4j_data`
+  - `maraca_v02_neo4j_logs`
+  - `maraca_v02_default`
+- Remaining MARACA Docker resources:
+  - Network: `maraca-1_default`
+  - Volumes: `maraca-1_qdrant_data`, `maraca-1_neo4j_data`, `maraca-1_neo4j_logs`
+- Verification after fix:
+  - `docker compose up -d qdrant neo4j`: reports both containers running.
+  - `localhost:6333`: reachable.
+  - `localhost:7474`: reachable.
+  - `localhost:7687`: reachable.
+  - Strict backend health: all checks OK.
+- Finished: true for service conflict resolution.
+
+### Missing or Partial Full Backend Parts
+
+Install/runtime blockers:
+
+- A usable Python `>=3.11` interpreter is missing from the current shell.
+- `.venv` is missing, so package extras and console scripts are not installed in this checkout.
+- Qdrant and Neo4j containers are not running.
+
+Service integration gaps:
+
+- `QDRANT_COLLECTION` is documented but not wired through the health CLI or default adapter construction.
+- Qdrant adapter does not currently bootstrap or validate a fresh collection before health/index operations.
+- `NEO4J_DATABASE` is documented but not wired through the health CLI or default adapter construction.
+- Neo4j graph adapter writes skeletal graph nodes and does not yet create the full properties/relationships expected by traversal.
+- LangGraph is checked as an optional dependency, but the health path uses `LocalPlannedQueryGraphApp`; no production graph workflow is wired yet.
+- LlamaIndex is declared and checked, but not materially integrated into ingestion/indexing.
+- Production metadata, raw object store, telemetry store, model service, and external embedding service remain deferred or local-only.
+
+### Installation Plan
+
+Status: todo.
+Finished: false.
+
+1. Install or expose Python `>=3.11` in the shell.
+   - Interface: `python`, `py`, or explicit interpreter path.
+   - Test gate: `python --version` or explicit interpreter `--version` returns `>=3.11`.
+
+2. Create the virtual environment.
+   - Command: `py -m venv .venv` or equivalent explicit Python command.
+   - Interface: `.venv\Scripts\python.exe`.
+   - Test gate: `.venv\Scripts\python.exe --version`.
+
+3. Install full backend extras.
+   - Command: `.venv\Scripts\python.exe -m pip install -e ".[full]"`.
+   - Interfaces: `qdrant_client`, `neo4j`, `langgraph`, `llama_index.core`, `pytest`.
+   - Test gate: `.venv\Scripts\python.exe -m pip check`.
+
+4. Confirm environment file.
+   - Command: `Copy-Item .env.example .env` if `.env` is absent.
+   - Interfaces: Qdrant, Neo4j, storage root, model profile env vars.
+   - Test gate: `.venv\Scripts\rag-center-health.exe --env-file .env`.
+
+5. Start service containers.
+   - Command: `docker compose up -d qdrant neo4j`.
+   - Interfaces: Qdrant HTTP/gRPC ports, Neo4j browser/Bolt ports.
+   - Test gate: `docker compose ps` shows both services running.
+
+6. Add or run Qdrant collection bootstrap.
+   - Interface: `QDRANT_COLLECTION`, vector size `32`, distance metric chosen by adapter policy.
+   - Test gate: strict Qdrant health succeeds from an empty Docker volume and succeeds again idempotently.
+
+7. Harden Neo4j graph persistence before calling it production-ready.
+   - Interface: graph entity, relation, chunk payloads, Cypher upsert, traversal result hydration.
+   - Test gate: real-service graph index and traversal smoke test returns governed candidates with chunk/source/document/access metadata.
+
+8. Run full validation.
+   - Commands:
+     - `.venv\Scripts\rag-center-health.exe --strict-services --env-file .env`
+     - `.venv\Scripts\rag-center-smoke.exe`
+     - `.venv\Scripts\python.exe -m unittest discover -s tests`
+     - `.venv\Scripts\python.exe -m pytest`
+     - `PowerShell -ExecutionPolicy Bypass -File scripts\test_full_backend.ps1 -StrictServices`
+   - Finished flag: true only after all gates pass on the same environment.
+
+### Interface Test Matrix
+
+- Package install: `pip check`, optional import checks, console script existence.
+- Health CLI: lenient health before services, strict health after services.
+- Smoke CLI: keyword candidate count, executed mode, citation count, answer text, log count.
+- Qdrant adapter: health, collection bootstrap, index chunks, search, no text leakage, incompatible collection failure.
+- Neo4j adapter: health, graph index, traversal, access metadata preservation, no text leakage, write failure envelope.
+- LangGraph-compatible runtime: local fallback, injected app execution, app failure fallback, disabled fallback unavailable state.
+- Durable/local storage: JSON/JSONL round trip, rollback, telemetry append, governance field preservation.
+- End-to-end backend: fixture ingest, chunk, storage commit, vector/sparse commit, retrieval, ranking, validation, synthesis.
+
+### Tracker Fields for Full Backend Work
+
+- `task_id`
+- `status`: `todo`, `in_progress`, `blocked`, `validating`, `done`
+- `finished`: `false` or `true`
+- `owner`
+- `interface`
+- `install_or_code_scope`
+- `dependencies`
+- `test_gate`
+- `latest_result`
+- `validator_result`
+- `adversarial_result`
+- `notes`
+
 ## Current Goal
 
 Implement the project according to the milestone plan, using a worker/validator pair for each part and one repair loop when the validator finds actionable suggestions.

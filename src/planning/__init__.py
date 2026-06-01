@@ -13,10 +13,12 @@ from shared.records import (
     PlanFallbackAction,
     QueryType,
     RequiredFreshness,
+    RepairAction,
     RetrievalMode,
     RetrievalPlan,
     RetrievalRequest,
     RiskLevel,
+    ValidationRecord,
     ValidationCriterion,
     ValidationStatus,
 )
@@ -156,6 +158,32 @@ class PlanningResult:
 
 
 @dataclass(frozen=True, slots=True)
+class RepairExecutionTrace:
+    """Observable bounded repair-loop state for a planned query result."""
+
+    validation_status: ValidationStatus
+    repair_action: RepairAction
+    repair_attempt: int
+    max_repair_attempts: int
+    previous_actions: tuple[str, ...] = ()
+    fallback_actions: tuple[PlanFallbackAction, ...] = ()
+    exhausted: bool = False
+    retrieval_rerun_requested: bool = False
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "validation_status": self.validation_status.value,
+            "repair_action": self.repair_action.value,
+            "repair_attempt": self.repair_attempt,
+            "max_repair_attempts": self.max_repair_attempts,
+            "previous_actions": list(self.previous_actions),
+            "fallback_actions": [action.value for action in self.fallback_actions],
+            "exhausted": self.exhausted,
+            "retrieval_rerun_requested": self.retrieval_rerun_requested,
+        }
+
+
+@dataclass(frozen=True, slots=True)
 class PlannedQueryResult:
     """Planner-to-retrieval smoke flow with downstream trace continuity."""
 
@@ -165,6 +193,7 @@ class PlannedQueryResult:
     validation: ValidationResult | None = None
     synthesis: SynthesisResult | None = None
     executed_modes: tuple[RetrievalMode, ...] = ()
+    repair_trace: RepairExecutionTrace | None = None
     logs: tuple[LogEvent, ...] = ()
     errors: tuple[Any, ...] = ()
 
@@ -485,6 +514,7 @@ def run_planned_query(
     )
     logs.extend(validation.logs)
     errors.extend(validation.errors)
+    repair_trace = _repair_execution_trace(planning, validation.validation)
     synthesis_evidence = (
         validation.approved_evidence
         if validation.validation.validation_status is ValidationStatus.PASS
@@ -520,6 +550,7 @@ def run_planned_query(
         validation=validation,
         synthesis=synthesis,
         executed_modes=executed_modes,
+        repair_trace=repair_trace,
         logs=tuple(logs),
         errors=tuple(errors),
     )
@@ -570,6 +601,32 @@ def _direct_response_decision(request: RetrievalRequest, modes: list[RetrievalMo
             "synthesis_deferred": True,
             "requires_retrieval": not direct,
         },
+    )
+
+
+def _repair_execution_trace(
+    planning: PlanningResult,
+    validation: ValidationRecord,
+) -> RepairExecutionTrace | None:
+    if validation.validation_status not in {ValidationStatus.REPAIR_NEEDED, ValidationStatus.FAIL}:
+        return None
+
+    repair_attempt = planning.plan.repair_attempt
+    max_repair_attempts = planning.plan.max_repair_attempts
+    exhausted = (
+        validation.validation_status is ValidationStatus.FAIL
+        or validation.repair_action is RepairAction.STOP
+        or repair_attempt >= max_repair_attempts
+    )
+    return RepairExecutionTrace(
+        validation_status=validation.validation_status,
+        repair_action=validation.repair_action,
+        repair_attempt=repair_attempt,
+        max_repair_attempts=max_repair_attempts,
+        previous_actions=tuple(planning.plan.previous_actions),
+        fallback_actions=tuple(planning.plan.fallback_actions),
+        exhausted=exhausted,
+        retrieval_rerun_requested=False,
     )
 
 
@@ -916,6 +973,7 @@ __all__ = [
     "PlannerTrace",
     "PlanningResult",
     "PlannedQueryResult",
+    "RepairExecutionTrace",
     "classify_query",
     "create_retrieval_plan",
     "create_retrieval_request",

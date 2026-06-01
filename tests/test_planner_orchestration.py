@@ -1,6 +1,8 @@
+from dataclasses import replace
 from datetime import date
 import unittest
 
+import planning as planning_module
 from ingestion import run_ingestion_job, split_document_into_chunks
 from planning import (
     LangGraphCompatibleOrchestrationAdapter,
@@ -19,6 +21,7 @@ from shared import (
     OutputIntent,
     QueryType,
     ReliabilityLevel,
+    RepairAction,
     RetrievalMode,
     SourceStatus,
     SourceType,
@@ -116,6 +119,7 @@ class PlannerOrchestrationTests(unittest.TestCase):
         self.assertTrue(all(candidate.request_id == result.planning.request.request_id for candidate in result.retrieval.candidates))
         self.assertIsNotNone(result.synthesis)
         self.assertEqual(result.synthesis.answer.request_id, result.planning.request.request_id)
+        self.assertIsNone(result.repair_trace)
         self.assertEqual({log.correlation_id for log in result.logs}, {result.planning.logs[0].correlation_id})
 
     def test_semantic_plan_uses_hybrid_text_retrieval_for_source_backed_answer(self) -> None:
@@ -150,10 +154,56 @@ class PlannerOrchestrationTests(unittest.TestCase):
 
         self.assertIsNotNone(result.validation)
         self.assertEqual(result.validation.validation.validation_status, ValidationStatus.REPAIR_NEEDED)
+        self.assertIsNotNone(result.repair_trace)
+        self.assertEqual(result.repair_trace.validation_status, ValidationStatus.REPAIR_NEEDED)
+        self.assertEqual(result.repair_trace.repair_action, RepairAction.EXTERNAL_LOOKUP)
+        self.assertEqual(result.repair_trace.repair_attempt, result.planning.plan.repair_attempt)
+        self.assertEqual(result.repair_trace.max_repair_attempts, result.planning.plan.max_repair_attempts)
+        self.assertEqual(result.repair_trace.previous_actions, ())
+        self.assertFalse(result.repair_trace.exhausted)
+        self.assertFalse(result.repair_trace.retrieval_rerun_requested)
         self.assertIsNotNone(result.synthesis)
         self.assertEqual(result.synthesis.used_evidence, ())
         self.assertEqual(result.synthesis.claims, ())
         self.assertIn("validation_repair_needed", _event_names(result.logs))
+
+    def test_validation_failure_exposes_exhausted_repair_trace_with_prior_actions(self) -> None:
+        storage = _indexed_public_repository()
+        original_plan_request = planning_module.plan_request
+
+        def plan_with_exhausted_attempt(*args, **kwargs):
+            planning = original_plan_request(*args, **kwargs)
+            plan = replace(
+                planning.plan,
+                repair_attempt=1,
+                max_repair_attempts=1,
+                previous_actions=["retrieve_more"],
+            )
+            return replace(planning, plan=plan)
+
+        planning_module.plan_request = plan_with_exhausted_attempt
+        try:
+            result = run_planned_query(
+                "latest alpha evidence bridge",
+                storage,
+                principal="reader",
+                current_date=date(2028, 5, 22),
+            )
+        finally:
+            planning_module.plan_request = original_plan_request
+
+        self.assertIsNotNone(result.validation)
+        self.assertEqual(result.validation.validation.validation_status, ValidationStatus.FAIL)
+        self.assertIsNotNone(result.repair_trace)
+        self.assertEqual(result.repair_trace.validation_status, ValidationStatus.FAIL)
+        self.assertEqual(result.repair_trace.repair_action, RepairAction.STOP)
+        self.assertEqual(result.repair_trace.repair_attempt, 1)
+        self.assertEqual(result.repair_trace.max_repair_attempts, 1)
+        self.assertEqual(result.repair_trace.previous_actions, ("retrieve_more",))
+        self.assertEqual(result.repair_trace.fallback_actions, tuple(result.planning.plan.fallback_actions))
+        self.assertTrue(result.repair_trace.exhausted)
+        self.assertFalse(result.repair_trace.retrieval_rerun_requested)
+        self.assertIn("validation_failed", _event_names(result.logs))
 
     def test_source_backed_uncertain_question_falls_back_to_hybrid(self) -> None:
         storage = _indexed_public_repository()
@@ -180,6 +230,7 @@ class PlannerOrchestrationTests(unittest.TestCase):
         self.assertIsNone(result.retrieval)
         self.assertIsNone(result.ranking)
         self.assertIsNone(result.synthesis)
+        self.assertIsNone(result.repair_trace)
         self.assertNotIn("retrieval_completed", _event_names(result.logs))
 
     def test_orchestrated_query_logs_match_available_successful_query_expectations(self) -> None:

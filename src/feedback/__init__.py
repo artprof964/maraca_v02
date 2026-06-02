@@ -17,7 +17,13 @@ from shared.contracts import (
     _utc_now,
     new_correlation_id,
 )
-from shared.policies import create_error_envelope, create_error_log_event, create_success_log_event
+from shared.policies import (
+    create_error_envelope,
+    create_error_log_event,
+    create_error_telemetry,
+    create_success_log_event,
+)
+from shared.repository_hooks import add_repository_log, save_repository_error
 from shared.records import (
     AnswerRecord,
     CitationStatus,
@@ -207,31 +213,23 @@ def capture_feedback(
     try:
         _save_feedback(repository, feedback, trace_reference)
     except Exception as exc:
-        error = create_error_envelope(
+        error, log = create_error_telemetry(
             correlation_id=corr,
             partition=Partition.FEEDBACK,
             operation_name="capture_feedback",
             error_type=ErrorType.STORAGE,
             error_message=f"Feedback write failed: {exc}",
+            log_message="Feedback write failed; preserved trace for retry.",
             retryable=True,
             fallback_action=FallbackAction.RETRY,
-            details={
+            event_name="feedback_capture_failed",
+            error_details={
                 "request_id": request_id,
                 "answer_id": answer.answer_id,
                 "feedback_id": feedback.feedback_id,
                 "trace_reference": trace_reference.to_dict(),
             },
-        )
-        _save_error(repository, error)
-        log = create_error_log_event(
-            correlation_id=corr,
-            partition=Partition.FEEDBACK,
-            operation_name="capture_feedback",
-            event_name="feedback_capture_failed",
-            error_type=ErrorType.STORAGE,
-            message="Feedback write failed; preserved trace for retry.",
-            fallback_action=FallbackAction.RETRY,
-            details={
+            log_details={
                 "request_id": request_id,
                 "answer_id": answer.answer_id,
                 "feedback_id": feedback.feedback_id,
@@ -239,6 +237,7 @@ def capture_feedback(
                 "policy_mutation": False,
             },
         )
+        _save_error(repository, error)
         _add_log(repository, log)
         return FeedbackCaptureResult(feedback=feedback, trace_reference=trace_reference, logs=(log,), errors=(error,))
 
@@ -639,9 +638,7 @@ def _save_feedback(
 
 
 def _add_log(repository: InMemoryFeedbackRepository | InMemoryStorageRepository | None, log: LogEvent) -> LogEvent:
-    if repository is not None and hasattr(repository, "add_log"):
-        repository.add_log(log)
-    return log
+    return add_repository_log(repository, log)
 
 
 def _save_improvement_task(repository: InMemoryFeedbackRepository | object | None, task: ImprovementTaskRecord) -> None:
@@ -650,8 +647,7 @@ def _save_improvement_task(repository: InMemoryFeedbackRepository | object | Non
 
 
 def _save_error(repository: InMemoryFeedbackRepository | InMemoryStorageRepository | None, error: ErrorEnvelope) -> None:
-    if repository is not None and hasattr(repository, "save_error"):
-        repository.save_error(error)
+    save_repository_error(repository, error)
 
 
 __all__ = [

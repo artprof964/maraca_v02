@@ -18,6 +18,7 @@ from .environment import (
     serialize_environment_profile,
     serialize_environment_profiles,
 )
+from .enums import coerce_enum, coerce_str_enum, lookup_enum_key, lookup_str_enum
 from .fixtures import (
     DEFAULT_FIXTURE_CATALOG_PATH,
     REQUIRED_FIXTURE_FIELDS,
@@ -30,6 +31,7 @@ from .fixtures import (
     resolve_fixture_path,
     validate_fixture_catalog,
 )
+from .ids import stable_id
 from .policies import (
     DEFAULT_FALLBACK_ACTIONS,
     REQUIRED_ERROR_TYPES_BY_PARTITION,
@@ -39,6 +41,7 @@ from .policies import (
     LogExpectation,
     create_error_envelope,
     create_error_log_event,
+    create_error_telemetry,
     create_start_log_event,
     create_success_log_event,
     default_fallback_action,
@@ -90,6 +93,13 @@ from .records import (
     ValidationCriterion,
     ValidationRecord,
     ValidationStatus,
+)
+from .repository_hooks import add_repository_log, call_repository_hook, save_repository_error
+from .serialization import (
+    serialize_contract,
+    serialize_dataclass,
+    serialize_mapping,
+    serialize_value,
 )
 from .stack import (
     BASELINE_STACK_BY_CATEGORY,
@@ -186,8 +196,13 @@ __all__ = [
     "StackComponentType",
     "create_error_envelope",
     "create_error_log_event",
+    "create_error_telemetry",
     "create_start_log_event",
     "create_success_log_event",
+    "add_repository_log",
+    "call_repository_hook",
+    "coerce_enum",
+    "coerce_str_enum",
     "default_fallback_action",
     "fixture_catalog_base",
     "fixture_sources_base",
@@ -198,12 +213,20 @@ __all__ = [
     "get_fallback_component",
     "get_fallback_stack",
     "load_fixture_catalog",
+    "lookup_enum_key",
+    "lookup_str_enum",
     "new_correlation_id",
     "resolve_fixture_path",
+    "save_repository_error",
+    "serialize_contract",
+    "serialize_dataclass",
     "serialize_environment_profile",
     "serialize_environment_profiles",
+    "serialize_mapping",
     "serialize_stack_component",
     "serialize_stack_components",
+    "serialize_value",
+    "stable_id",
     "validate_fixture_catalog",
     "validate_stack_selections",
 ]

@@ -14,6 +14,7 @@ from shared import (
     DocumentType,
     ErrorType,
     IngestionStatus,
+    IngestionTriggerType,
     LicensePolicy,
     LogEventType,
     Partition,
@@ -60,6 +61,29 @@ def test_start_ingestion_job_creates_correlation_id() -> None:
     assert job.correlation_id is not None
     assert logs[0].correlation_id == job.correlation_id
     assert logs[0].details["event_name"] == "ingestion_started"
+
+
+def test_start_ingestion_job_accepts_string_trigger_type() -> None:
+    repository = InMemoryIngestionJobRepository()
+    source = _source_from_fixture("fixture_a_public_document")
+
+    job = start_ingestion_job(source, repository=repository, trigger_type="repair")
+
+    assert job.trigger_type is IngestionTriggerType.REPAIR
+
+
+def test_start_ingestion_job_rejects_invalid_trigger_type() -> None:
+    source = _source_from_fixture("fixture_a_public_document")
+
+    try:
+        start_ingestion_job(source, trigger_type="not_a_trigger")
+    except IngestionError as exc:
+        assert str(exc) == "invalid trigger_type: 'not_a_trigger'"
+        assert exc.error_type is ErrorType.PARSING
+        assert isinstance(exc.__cause__, ValueError)
+        return
+
+    raise AssertionError("Expected IngestionError for invalid trigger_type.")
 
 
 def test_extract_source_content_returns_raw_artifact_reference() -> None:

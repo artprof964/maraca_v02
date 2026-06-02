@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from enum import StrEnum
 from types import MappingProxyType
 from typing import Any, Iterable, Mapping
 
-from .contracts import _serialize_contract
+from .enums import lookup_str_enum
+from .serialization import serialize_dataclass
 
 
 class StackComponentCategory(StrEnum):
@@ -39,7 +40,7 @@ class StackComponent:
     fallback_for: StackComponentCategory | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        payload = _serialize_contract(asdict(self))
+        payload = serialize_dataclass(self)
         payload["package_names"] = list(self.package_names)
         return payload
 
@@ -127,7 +128,7 @@ def get_baseline_stack() -> tuple[StackComponent, ...]:
 def get_baseline_component(
     category: StackComponentCategory | str,
 ) -> StackComponent:
-    return BASELINE_STACK_BY_CATEGORY[StackComponentCategory(category)]
+    return lookup_str_enum(BASELINE_STACK_BY_CATEGORY, StackComponentCategory, category)
 
 
 def get_fallback_stack() -> tuple[StackComponent, ...]:
@@ -137,7 +138,7 @@ def get_fallback_stack() -> tuple[StackComponent, ...]:
 def get_fallback_component(
     category: StackComponentCategory | str,
 ) -> StackComponent:
-    return FALLBACK_STACK_BY_CATEGORY[StackComponentCategory(category)]
+    return lookup_str_enum(FALLBACK_STACK_BY_CATEGORY, StackComponentCategory, category)
 
 
 def serialize_stack_component(component: StackComponent) -> dict[str, Any]:

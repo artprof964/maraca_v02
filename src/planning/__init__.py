@@ -8,6 +8,7 @@ from typing import Any, Iterable
 
 from shared.contracts import LogEvent, LogEventType, Partition, new_correlation_id
 from shared.policies import create_success_log_event
+from shared.repository_hooks import add_repository_log, call_repository_hook
 from shared.records import (
     OutputIntent,
     PlanFallbackAction,
@@ -462,7 +463,7 @@ def run_planned_query(
     corr = correlation_id or new_correlation_id("planned_query")
     planning = plan_request(request_or_query, correlation_id=corr)
     for log in planning.logs:
-        repository.add_log(log)
+        add_repository_log(repository, log, required=True)
 
     logs: list[LogEvent] = list(planning.logs)
     errors: list[Any] = []
@@ -533,8 +534,7 @@ def run_planned_query(
     if validation.validation.validation_status is ValidationStatus.PASS and synthesis.claims:
         claim_support = validate_claim_support(synthesis.claims, validation.approved_evidence)
         for claim in claim_support.claims:
-            if hasattr(repository, "save_claim_record"):
-                repository.save_claim_record(claim)
+            call_repository_hook(repository, "save_claim_record", claim)
         synthesis = replace(
             synthesis,
             claims=claim_support.claims,
@@ -805,7 +805,7 @@ def _execute_plan_retrieval(
                     "graph_degraded": graph_result.degraded,
                 },
             )
-            repository.add_log(log)
+            add_repository_log(repository, log, required=True)
             return (
                 HybridSearchResult(
                     candidates=graph_candidates,
@@ -939,7 +939,7 @@ def _run_single_mode_retrieval(
             "modes": [mode.value],
         },
     )
-    repository.add_log(log)
+    add_repository_log(repository, log, required=True)
     return HybridSearchResult(
         candidates=merged,
         logs=(*access.logs, log),

@@ -7,9 +7,11 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any, Iterable, Protocol
 
-from shared.contracts import ErrorEnvelope, ErrorSeverity, ErrorType, FallbackAction, LogEvent, Partition, _serialize_contract
+from shared.contracts import ErrorEnvelope, ErrorSeverity, ErrorType, FallbackAction, LogEvent, Partition
 from shared.policies import create_error_envelope, create_success_log_event
 from shared.records import RetrievalRequest
+from shared.repository_hooks import add_repository_log, save_repository_error
+from shared.serialization import serialize_mapping
 
 
 class OrchestrationCapability(StrEnum):
@@ -39,7 +41,7 @@ class OrchestrationRuntimeConfig:
     connection_settings: dict[str, object] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, object]:
-        return _serialize_contract(
+        return serialize_mapping(
             {
                 "adapter_name": self.adapter_name,
                 "runtime_name": self.runtime_name,
@@ -64,7 +66,7 @@ class OrchestrationHealthCheck:
     details: dict[str, object] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, object]:
-        return _serialize_contract(
+        return serialize_mapping(
             {
                 "adapter_name": self.adapter_name,
                 "runtime_name": self.runtime_name,
@@ -94,7 +96,7 @@ class OrchestrationRunResult:
     details: dict[str, object] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, object]:
-        return _serialize_contract(
+        return serialize_mapping(
             {
                 "adapter_name": self.adapter_name,
                 "runtime_name": self.runtime_name,
@@ -263,8 +265,7 @@ class LangGraphCompatibleOrchestrationAdapter:
             "Started planned query orchestration.",
             details={"runtime_name": self.config.runtime_name, "fallback_runtime": self.config.fallback_runtime},
         )
-        if hasattr(repository, "add_log"):
-            repository.add_log(start_log)
+        add_repository_log(repository, start_log)
 
         if health.status is OrchestrationStatus.UNAVAILABLE:
             error = health.error or _orchestration_error(
@@ -338,8 +339,7 @@ class LangGraphCompatibleOrchestrationAdapter:
                     retryable=True,
                     details={"runtime_name": self.config.runtime_name, "exception_type": type(exc).__name__},
                 )
-                if hasattr(repository, "save_error"):
-                    repository.save_error(error)
+                save_repository_error(repository, error)
                 return _run_result(
                     self.config,
                     False,
@@ -368,8 +368,7 @@ class LangGraphCompatibleOrchestrationAdapter:
                 **_planned_query_summary(planned_query),
             },
         )
-        if hasattr(repository, "add_log"):
-            repository.add_log(complete_log)
+        add_repository_log(repository, complete_log)
 
         planned_logs = tuple(getattr(planned_query, "logs", ()))
         return _run_result(

@@ -17,6 +17,7 @@ from shared.contracts import (
     new_correlation_id,
     _utc_now,
 )
+from shared.enums import coerce_str_enum
 from shared.policies import create_error_envelope, create_error_log_event, create_success_log_event
 from shared.records import (
     AccessDecision,
@@ -88,13 +89,17 @@ class SourceRefreshCheck:
     error: ErrorEnvelope | None = None
 
 
-def _coerce_enum(enum_type: type, value: object, field_name: str):
-    if isinstance(value, enum_type):
-        return value
-    try:
-        return enum_type(value)
-    except ValueError as exc:
-        raise SourceRegistryError(f"invalid {field_name}: {value!r}") from exc
+def _source_registry_enum_error(field_name: str, value: object) -> SourceRegistryError:
+    return SourceRegistryError(f"invalid {field_name}: {value!r}")
+
+
+def _coerce_registry_enum(enum_type: type, value: object, field_name: str):
+    return coerce_str_enum(
+        enum_type,
+        value,
+        field_name=field_name,
+        error_factory=_source_registry_enum_error,
+    )
 
 
 def _access_policy_id(access_level: AccessLevel) -> str:
@@ -210,18 +215,18 @@ class SourceRegistry:
         if not source_name.strip():
             raise SourceRegistryError("source_name is required")
 
-        resolved_type = _coerce_enum(SourceType, source_type, "source_type")
-        resolved_access_method = _coerce_enum(AccessMethod, access_method, "access_method")
-        resolved_access_level = _coerce_enum(AccessLevel, access_level, "access_level")
-        resolved_license = _coerce_enum(LicensePolicy, license_policy, "license_policy")
-        resolved_reliability = _coerce_enum(
+        resolved_type = _coerce_registry_enum(SourceType, source_type, "source_type")
+        resolved_access_method = _coerce_registry_enum(AccessMethod, access_method, "access_method")
+        resolved_access_level = _coerce_registry_enum(AccessLevel, access_level, "access_level")
+        resolved_license = _coerce_registry_enum(LicensePolicy, license_policy, "license_policy")
+        resolved_reliability = _coerce_registry_enum(
             ReliabilityLevel,
             reliability_level,
             "reliability_level",
         )
-        resolved_freshness = _coerce_enum(FreshnessPolicy, freshness_policy, "freshness_policy")
+        resolved_freshness = _coerce_registry_enum(FreshnessPolicy, freshness_policy, "freshness_policy")
         resolved_status = (
-            _coerce_enum(SourceStatus, status, "status")
+            _coerce_registry_enum(SourceStatus, status, "status")
             if status is not None
             else (SourceStatus.PENDING if owner is None else SourceStatus.ACTIVE)
         )
@@ -258,7 +263,7 @@ class SourceRegistry:
         correlation_id: str | None = None,
     ) -> tuple[SourceRecord, LogEvent | None]:
         """Update status, allowing only shared source status values."""
-        resolved_status = _coerce_enum(SourceStatus, status, "status")
+        resolved_status = _coerce_registry_enum(SourceStatus, status, "status")
         source = self.repository.get(source_id)
         updated = replace(source, status=resolved_status)
         self.repository.save(updated)

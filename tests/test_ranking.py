@@ -2,8 +2,29 @@ from datetime import date
 import unittest
 
 from ranking import RankingConfig, RankingWeights, select_ranked_evidence
+from ranking import _add_log as _ranking_add_log
+from ranking import _save_error as _ranking_save_error
 from shared import EvidenceCandidate, LogEventType, Partition, ReliabilityLevel, RetrievalMode
 from storage import InMemoryStorageRepository
+
+
+class RecordingRankingRepository:
+    def __init__(self) -> None:
+        self.calls: list[tuple[str, object]] = []
+
+    def add_log(self, log: object) -> None:
+        self.calls.append(("add_log", log))
+
+    def save_error(self, error: object) -> None:
+        self.calls.append(("save_error", error))
+
+
+class FailingRankingRepository:
+    def add_log(self, log: object) -> None:
+        raise RuntimeError("ranking log write failed")
+
+    def save_error(self, error: object) -> None:
+        raise RuntimeError("ranking error write failed")
 
 
 def _candidate(
@@ -32,6 +53,26 @@ def _candidate(
 
 
 class RankingTests(unittest.TestCase):
+    def test_repository_hook_helpers_preserve_current_strict_behavior(self) -> None:
+        repository = RecordingRankingRepository()
+        log = object()
+        error = object()
+
+        self.assertIs(_ranking_add_log(None, log), log)
+        self.assertIs(_ranking_save_error(None, error), error)
+        self.assertIs(_ranking_add_log(repository, log), log)
+        self.assertIs(_ranking_save_error(repository, error), error)
+
+        self.assertEqual(repository.calls, [("add_log", log), ("save_error", error)])
+        with self.assertRaises(AttributeError):
+            _ranking_add_log(object(), log)
+        with self.assertRaises(AttributeError):
+            _ranking_save_error(object(), error)
+        with self.assertRaisesRegex(RuntimeError, "ranking log write failed"):
+            _ranking_add_log(FailingRankingRepository(), log)
+        with self.assertRaisesRegex(RuntimeError, "ranking error write failed"):
+            _ranking_save_error(FailingRankingRepository(), error)
+
     def test_select_ranked_evidence_prefers_query_relevant_candidate(self) -> None:
         relevant = _candidate(
             evidence_id="ev_relevant",
@@ -184,7 +225,26 @@ class RankingTests(unittest.TestCase):
         self.assertTrue(result.used_fallback)
         self.assertEqual([candidate.evidence_id for candidate in result.candidates], ["ev_high", "ev_low"])
         self.assertEqual(result.errors[0].partition, Partition.RANKING)
+        self.assertEqual(result.errors[0].operation_name, "select_ranked_evidence")
+        self.assertEqual(result.errors[0].error_type.value, "model")
+        self.assertEqual(result.errors[0].fallback_action.value, "skip")
+        self.assertFalse(result.errors[0].retryable)
+        self.assertEqual(
+            result.errors[0].details,
+            {"event_name": "reranker_fallback", "candidate_count": 2},
+        )
         self.assertEqual(result.logs[0].event_type, LogEventType.ERROR)
+        self.assertEqual(result.logs[0].operation_name, "select_ranked_evidence")
+        self.assertEqual(
+            result.logs[0].details,
+            {
+                "event_name": "reranker_fallback",
+                "candidate_count": 2,
+                "error_type": "model",
+                "fallback_action": "skip",
+                "retry_count": 0,
+            },
+        )
         self.assertIn(result.errors[0].error_id, repository.errors)
         self.assertIn("evidence_selected", [log.details.get("event_name") for log in repository.logs.values()])
 

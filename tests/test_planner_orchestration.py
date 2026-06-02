@@ -100,6 +100,14 @@ class FakeLangGraphApp:
         )
 
 
+class SaveErrorOnlyRepository:
+    def __init__(self) -> None:
+        self.errors: list[object] = []
+
+    def save_error(self, error: object) -> None:
+        self.errors.append(error)
+
+
 class PlannerOrchestrationTests(unittest.TestCase):
     def test_exact_plan_executes_keyword_retrieval_and_preserves_trace(self) -> None:
         storage = _indexed_public_repository()
@@ -233,6 +241,10 @@ class PlannerOrchestrationTests(unittest.TestCase):
         self.assertIsNone(result.repair_trace)
         self.assertNotIn("retrieval_completed", _event_names(result.logs))
 
+    def test_planned_query_keeps_required_repository_log_hook_behavior(self) -> None:
+        with self.assertRaises(AttributeError):
+            run_planned_query("hello", object())
+
     def test_orchestrated_query_logs_match_available_successful_query_expectations(self) -> None:
         storage = _indexed_public_repository()
         result = run_planned_query('"alpha evidence bridge"', storage, principal="reader")
@@ -346,6 +358,26 @@ class PlannerOrchestrationTests(unittest.TestCase):
         self.assertFalse(result.ok)
         self.assertEqual(result.health.status, OrchestrationStatus.UNAVAILABLE)
         self.assertIsNotNone(result.error)
+
+    def test_langgraph_runtime_error_path_preserves_optional_save_error_hook_behavior(self) -> None:
+        repository = SaveErrorOnlyRepository()
+        adapter = LangGraphCompatibleOrchestrationAdapter(graph_app=FakeLangGraphApp(fail=True), allow_local_fallback=False)
+
+        result = adapter.run_query(
+            '"alpha evidence bridge"',
+            repository,
+            principal="reader",
+            correlation_id="corr_orchestration_no_fallback_error",
+        )
+
+        self.assertFalse(result.ok)
+        self.assertEqual(result.health.status, OrchestrationStatus.READY)
+        self.assertIsNotNone(result.error)
+        self.assertEqual(result.error.error_message, "graph app failed")
+        self.assertEqual(result.error.details, {"runtime_name": "LangGraph", "exception_type": "RuntimeError"})
+        self.assertEqual(repository.errors, [result.error])
+        self.assertEqual(result.details["fallback_used"], False)
+        self.assertEqual(_event_names(result.logs), ["orchestration_started"])
 
 
 def _event_names(logs) -> list[str]:

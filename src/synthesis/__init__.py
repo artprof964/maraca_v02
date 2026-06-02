@@ -9,7 +9,8 @@ from typing import Iterable, Mapping, Sequence
 from uuid import uuid4
 
 from shared.contracts import ErrorEnvelope, ErrorType, FallbackAction, LogEvent, Partition, new_correlation_id
-from shared.policies import create_error_envelope, create_error_log_event, create_success_log_event
+from shared.policies import create_error_telemetry, create_success_log_event
+from shared.repository_hooks import add_repository_log, save_repository_error
 from shared.records import (
     AccessDecision,
     AnswerRecord,
@@ -122,31 +123,20 @@ def generate_answer(
         logs.append(_add_log(repository, citation_log))
 
     if not claims:
-        error = create_error_envelope(
+        error, log = create_error_telemetry(
             correlation_id=corr,
             partition=Partition.SYNTHESIS,
             operation_name="generate_answer",
             error_type=ErrorType.VALIDATION,
             error_message="No approved cited evidence was available for synthesis.",
+            log_message="No approved cited evidence was available for synthesis.",
             fallback_action=FallbackAction.STOP,
-            details={"event_name": "insufficient_cited_evidence", "query": query},
+            event_name="insufficient_cited_evidence",
+            error_details={"event_name": "insufficient_cited_evidence", "query": query},
+            log_details={"query": query},
         )
         errors.append(_save_error(repository, error))
-        logs.append(
-            _add_log(
-                repository,
-                create_error_log_event(
-                    correlation_id=corr,
-                    partition=Partition.SYNTHESIS,
-                    operation_name="generate_answer",
-                    error_type=ErrorType.VALIDATION,
-                    event_name="insufficient_cited_evidence",
-                    message="No approved cited evidence was available for synthesis.",
-                    fallback_action=FallbackAction.STOP,
-                    details={"query": query},
-                ),
-            )
-        )
+        logs.append(_add_log(repository, log))
 
     answer_log = create_success_log_event(
         correlation_id=corr,
@@ -416,15 +406,11 @@ def _clamp(value: float) -> float:
 
 
 def _add_log(repository: InMemoryStorageRepository | None, log: LogEvent) -> LogEvent:
-    if repository is not None:
-        repository.add_log(log)
-    return log
+    return add_repository_log(repository, log, required=True)
 
 
 def _save_error(repository: InMemoryStorageRepository | None, error: ErrorEnvelope) -> ErrorEnvelope:
-    if repository is not None:
-        repository.save_error(error)
-    return error
+    return save_repository_error(repository, error, required=True)
 
 
 __all__ = [

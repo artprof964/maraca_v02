@@ -1,4 +1,4 @@
-from datetime import UTC
+from datetime import UTC, date
 
 from shared import (
     ErrorEnvelope,
@@ -8,7 +8,10 @@ from shared import (
     LogEvent,
     LogEventType,
     Partition,
+    RetrievalMode,
     new_correlation_id,
+    serialize_dataclass,
+    serialize_mapping,
 )
 
 
@@ -68,3 +71,33 @@ def test_log_event_carries_shared_trace_fields() -> None:
     assert payload["event_type"] == "decision"
     assert payload["partition"] == "planning"
     assert payload["created_at"].endswith("+00:00")
+
+
+def test_serialization_helpers_preserve_tuple_behavior_by_default() -> None:
+    payload = serialize_mapping(
+        {
+            "modes": (RetrievalMode.KEYWORD, RetrievalMode.VECTOR),
+            "published_at": date(2026, 1, 15),
+        }
+    )
+    list_payload = serialize_mapping(
+        {"modes": (RetrievalMode.KEYWORD, RetrievalMode.VECTOR)},
+        tuple_as_list=True,
+    )
+    envelope = ErrorEnvelope(
+        correlation_id="corr_serialization_helper",
+        partition=Partition.RETRIEVAL,
+        operation_name="serialize_helper",
+        severity=ErrorSeverity.INFO,
+        error_type=ErrorType.UNKNOWN,
+        error_message="helper coverage",
+        retryable=False,
+        fallback_action=FallbackAction.STOP,
+    )
+
+    assert payload == {
+        "modes": ("keyword", "vector"),
+        "published_at": "2026-01-15",
+    }
+    assert list_payload == {"modes": ["keyword", "vector"]}
+    assert serialize_dataclass(envelope) == envelope.to_dict()

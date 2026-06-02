@@ -11,6 +11,7 @@ from shared import (
     Partition,
     create_error_envelope,
     create_error_log_event,
+    create_error_telemetry,
     create_start_log_event,
     create_success_log_event,
     default_fallback_action,
@@ -177,3 +178,51 @@ def test_policy_helpers_create_traceable_log_events_and_error_envelope() -> None
     assert envelope.fallback_action == FallbackAction.SKIP
     assert envelope.retryable is True
     assert envelope.to_dict()["partition"] == "retrieval"
+
+
+def test_create_error_telemetry_keeps_error_and_log_details_separate() -> None:
+    error, log = create_error_telemetry(
+        correlation_id="corr_policy_pair",
+        partition=Partition.FEEDBACK,
+        operation_name="capture_feedback",
+        error_type=ErrorType.STORAGE,
+        error_message="Feedback write failed.",
+        log_message="Feedback write failed; preserved trace for retry.",
+        retryable=True,
+        fallback_action=FallbackAction.RETRY,
+        event_name="feedback_capture_failed",
+        error_details={"request_id": "req_123"},
+        log_details={"request_id": "req_123", "policy_mutation": False},
+    )
+
+    assert error.details == {"request_id": "req_123"}
+    assert log.details == {
+        "request_id": "req_123",
+        "policy_mutation": False,
+        "event_name": "feedback_capture_failed",
+        "error_type": "storage",
+        "fallback_action": "retry",
+        "retry_count": 0,
+    }
+    assert "event_name" not in error.details
+    assert error.retryable is True
+    assert error.fallback_action == FallbackAction.RETRY
+
+
+def test_create_error_telemetry_preserves_explicit_error_event_name() -> None:
+    error, log = create_error_telemetry(
+        correlation_id="corr_policy_pair",
+        partition=Partition.RANKING,
+        operation_name="select_ranked_evidence",
+        error_type=ErrorType.MODEL,
+        error_message="Reranker failed.",
+        log_message="Reranker failed; using normalized retrieval scores.",
+        fallback_action=FallbackAction.SKIP,
+        event_name="reranker_fallback",
+        error_details={"event_name": "reranker_fallback", "candidate_count": 2},
+        log_details={"candidate_count": 2},
+    )
+
+    assert error.details == {"event_name": "reranker_fallback", "candidate_count": 2}
+    assert log.details["event_name"] == "reranker_fallback"
+    assert log.details["candidate_count"] == 2

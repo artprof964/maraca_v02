@@ -21,6 +21,10 @@ from shared import (
 )
 from storage import InMemoryStorageRepository
 from validation import (
+    _add_log,
+    _save_claim,
+    _save_error,
+    _save_validation,
     choose_repair_action,
     detect_contradictions,
     validate_answer_evidence,
@@ -29,6 +33,37 @@ from validation import (
     validate_relevance,
     validate_sufficiency,
 )
+
+
+class RecordingValidationRepository:
+    def __init__(self) -> None:
+        self.calls: list[tuple[str, object]] = []
+
+    def add_log(self, log: object) -> None:
+        self.calls.append(("add_log", log))
+
+    def save_error(self, error: object) -> None:
+        self.calls.append(("save_error", error))
+
+    def save_validation_record(self, validation: object) -> None:
+        self.calls.append(("save_validation_record", validation))
+
+    def save_claim_record(self, claim: object) -> None:
+        self.calls.append(("save_claim_record", claim))
+
+
+class FailingValidationRepository(RecordingValidationRepository):
+    def add_log(self, log: object) -> None:
+        raise RuntimeError("validation log write failed")
+
+    def save_error(self, error: object) -> None:
+        raise RuntimeError("validation error write failed")
+
+    def save_validation_record(self, validation: object) -> None:
+        raise RuntimeError("validation write failed")
+
+    def save_claim_record(self, claim: object) -> None:
+        raise RuntimeError("validation claim write failed")
 
 
 def _evidence(
@@ -58,6 +93,52 @@ def _evidence(
     )
 
 
+def test_validation_repository_helpers_preserve_optional_missing_hook_behavior() -> None:
+    repository = RecordingValidationRepository()
+    partial_repository = object()
+    log = object()
+    error = object()
+    validation = object()
+    claim = object()
+
+    assert _add_log(None, log) is log
+    assert _save_error(None, error) is error
+    assert _save_validation(None, validation) is validation
+    assert _save_claim(None, claim) is claim
+    assert _add_log(partial_repository, log) is log
+    assert _save_error(partial_repository, error) is error
+    assert _save_validation(partial_repository, validation) is validation
+    assert _save_claim(partial_repository, claim) is claim
+
+    assert _add_log(repository, log) is log
+    assert _save_error(repository, error) is error
+    assert _save_validation(repository, validation) is validation
+    assert _save_claim(repository, claim) is claim
+    assert repository.calls == [
+        ("add_log", log),
+        ("save_error", error),
+        ("save_validation_record", validation),
+        ("save_claim_record", claim),
+    ]
+
+
+def test_validation_repository_helpers_propagate_existing_hook_failures() -> None:
+    repository = FailingValidationRepository()
+
+    for hook, message in (
+        (_add_log, "validation log write failed"),
+        (_save_error, "validation error write failed"),
+        (_save_validation, "validation write failed"),
+        (_save_claim, "validation claim write failed"),
+    ):
+        try:
+            hook(repository, object())
+        except RuntimeError as exc:
+            assert str(exc) == message
+        else:
+            raise AssertionError(f"expected {hook.__name__} failure to propagate")
+
+
 def test_access_denied_evidence_is_rejected_before_answer_use() -> None:
     request = create_retrieval_request("Summarize the restricted source")
     denied = _evidence(
@@ -78,7 +159,26 @@ def test_access_denied_evidence_is_rejected_before_answer_use() -> None:
     assert result.validation.validation_status is ValidationStatus.FAIL
     assert result.validation.repair_action is RepairAction.STOP
     assert result.validation.failed_criteria == [ValidationCriterion.ACCESS]
+    assert result.errors[0].partition is Partition.VALIDATION
+    assert result.errors[0].operation_name == "validate_answer_evidence"
     assert result.errors[0].error_type.value == "access"
+    assert result.errors[0].fallback_action.value == "stop"
+    assert result.errors[0].retryable is False
+    assert result.errors[0].details == {
+        "event_name": "validation_failed",
+        "validation_id": result.validation.validation_id,
+        "repair_action": "stop",
+    }
+    assert result.logs[1].partition is Partition.VALIDATION
+    assert result.logs[1].operation_name == "validate_answer_evidence"
+    assert result.logs[1].details == {
+        "event_name": "validation_failed",
+        "validation_id": result.validation.validation_id,
+        "repair_action": "stop",
+        "error_type": "access",
+        "fallback_action": "stop",
+        "retry_count": 0,
+    }
 
 
 def test_relevance_and_sufficiency_threshold_failures_request_more_evidence() -> None:

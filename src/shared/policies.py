@@ -201,6 +201,51 @@ def create_error_envelope(
     )
 
 
+def create_error_telemetry(
+    *,
+    correlation_id: str,
+    partition: Partition,
+    operation_name: str,
+    error_type: ErrorType,
+    error_message: str,
+    log_message: str,
+    severity: ErrorSeverity = ErrorSeverity.RECOVERABLE,
+    retryable: bool = False,
+    fallback_action: FallbackAction | None = None,
+    retry_count: int = 0,
+    max_retries: int = 0,
+    event_name: str | None = None,
+    error_details: Mapping[str, Any] | None = None,
+    log_details: Mapping[str, Any] | None = None,
+) -> tuple[ErrorEnvelope, LogEvent]:
+    """Create paired error envelope and error log telemetry."""
+    error = create_error_envelope(
+        correlation_id=correlation_id,
+        partition=partition,
+        operation_name=operation_name,
+        error_type=error_type,
+        error_message=error_message,
+        severity=severity,
+        retryable=retryable,
+        fallback_action=fallback_action,
+        retry_count=retry_count,
+        max_retries=max_retries,
+        details=error_details,
+    )
+    log = create_error_log_event(
+        correlation_id=correlation_id,
+        partition=partition,
+        operation_name=operation_name,
+        error_type=error_type,
+        message=log_message,
+        event_name=event_name,
+        fallback_action=fallback_action,
+        retry_count=retry_count,
+        details=log_details,
+    )
+    return error, log
+
+
 def create_error_log_event(
     *,
     correlation_id: str,

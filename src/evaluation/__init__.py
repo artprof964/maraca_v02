@@ -18,7 +18,13 @@ from shared.contracts import (
     _utc_now,
     new_correlation_id,
 )
-from shared.policies import create_error_envelope, create_error_log_event, create_success_log_event
+from shared.policies import (
+    create_error_envelope,
+    create_error_log_event,
+    create_error_telemetry,
+    create_success_log_event,
+)
+from shared.repository_hooks import add_repository_log, save_repository_error
 from shared.records import (
     AnswerRecord,
     EvidenceCandidate,
@@ -265,36 +271,29 @@ def store_evaluation_trace(
     try:
         _save_trace(repository, trace)
     except Exception as exc:
-        error = create_error_envelope(
+        error, log = create_error_telemetry(
             correlation_id=corr,
             partition=Partition.EVALUATION,
             operation_name="store_evaluation_trace",
             error_type=ErrorType.STORAGE,
             error_message=f"Evaluation trace write failed: {exc}",
+            log_message="Evaluation trace write failed; preserved trace for retry.",
             retryable=True,
             fallback_action=FallbackAction.RETRY,
-            details={
+            event_name="evaluation_trace_store_failed",
+            error_details={
                 "request_id": request_id,
                 "answer_id": answer.answer_id,
                 "trace_id": trace.trace_id,
             },
-        )
-        _save_error(repository, error)
-        log = create_error_log_event(
-            correlation_id=corr,
-            partition=Partition.EVALUATION,
-            operation_name="store_evaluation_trace",
-            event_name="evaluation_trace_store_failed",
-            error_type=ErrorType.STORAGE,
-            message="Evaluation trace write failed; preserved trace for retry.",
-            fallback_action=FallbackAction.RETRY,
-            details={
+            log_details={
                 "request_id": request_id,
                 "answer_id": answer.answer_id,
                 "trace_id": trace.trace_id,
                 "policy_mutation": False,
             },
         )
+        _save_error(repository, error)
         _add_log(repository, log)
         return EvaluationTraceResult(trace=trace, logs=(log,), errors=(error,))
 
@@ -673,14 +672,11 @@ def _save_observability_report(
 
 
 def _add_log(repository: InMemoryEvaluationRepository | InMemoryStorageRepository | None, log: LogEvent) -> LogEvent:
-    if repository is not None and hasattr(repository, "add_log"):
-        repository.add_log(log)
-    return log
+    return add_repository_log(repository, log)
 
 
 def _save_error(repository: InMemoryEvaluationRepository | InMemoryStorageRepository | None, error: ErrorEnvelope) -> None:
-    if repository is not None and hasattr(repository, "save_error"):
-        repository.save_error(error)
+    save_repository_error(repository, error)
 
 
 __all__ = [

@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import date, datetime
 from enum import StrEnum
 from typing import Any
 from uuid import uuid4
 
-from .contracts import _serialize_contract, _utc_now
+from .contracts import _utc_now
+from .serialization import serialize_dataclass
 
 
 def _record_id(prefix: str) -> str:
@@ -314,7 +315,7 @@ class SourceRecord:
     source_id: str = field(default_factory=lambda: _record_id("src"))
 
     def to_dict(self) -> dict[str, Any]:
-        return _serialize_contract(asdict(self))
+        return serialize_dataclass(self)
 
 
 @dataclass(frozen=True, slots=True)
@@ -334,7 +335,7 @@ class IngestionJob:
     ingestion_job_id: str = field(default_factory=lambda: _record_id("ingest"))
 
     def to_dict(self) -> dict[str, Any]:
-        return _serialize_contract(asdict(self))
+        return serialize_dataclass(self)
 
 
 @dataclass(frozen=True, slots=True)
@@ -357,7 +358,7 @@ class DocumentRecord:
     document_id: str = field(default_factory=lambda: _record_id("doc"))
 
     def to_dict(self) -> dict[str, Any]:
-        return _serialize_contract(asdict(self))
+        return serialize_dataclass(self)
 
 
 @dataclass(frozen=True, slots=True)
@@ -383,7 +384,7 @@ class ChunkRecord:
     chunk_id: str = field(default_factory=lambda: _record_id("chunk"))
 
     def to_dict(self) -> dict[str, Any]:
-        return _serialize_contract(asdict(self))
+        return serialize_dataclass(self)
 
 
 @dataclass(frozen=True, slots=True)
@@ -399,7 +400,7 @@ class EntityRecord:
     entity_id: str = field(default_factory=lambda: _record_id("entity"))
 
     def to_dict(self) -> dict[str, Any]:
-        return _serialize_contract(asdict(self))
+        return serialize_dataclass(self)
 
 
 @dataclass(frozen=True, slots=True)
@@ -415,7 +416,7 @@ class RelationRecord:
     relation_id: str = field(default_factory=lambda: _record_id("rel"))
 
     def to_dict(self) -> dict[str, Any]:
-        return _serialize_contract(asdict(self))
+        return serialize_dataclass(self)
 
 
 @dataclass(frozen=True, slots=True)
@@ -430,7 +431,7 @@ class RetrievalRequest:
     request_id: str = field(default_factory=lambda: _record_id("req"))
 
     def to_dict(self) -> dict[str, Any]:
-        return _serialize_contract(asdict(self))
+        return serialize_dataclass(self)
 
 
 @dataclass(frozen=True, slots=True)
@@ -454,7 +455,7 @@ class RetrievalPlan:
     plan_id: str = field(default_factory=lambda: _record_id("plan"))
 
     def to_dict(self) -> dict[str, Any]:
-        return _serialize_contract(asdict(self))
+        return serialize_dataclass(self)
 
 
 @dataclass(frozen=True, slots=True)
@@ -480,7 +481,7 @@ class EvidenceCandidate:
     evidence_id: str = field(default_factory=lambda: _record_id("ev"))
 
     def to_dict(self) -> dict[str, Any]:
-        return _serialize_contract(asdict(self))
+        return serialize_dataclass(self)
 
 
 @dataclass(frozen=True, slots=True)
@@ -494,7 +495,7 @@ class RankedEvidence:
     ranked_evidence_id: str = field(default_factory=lambda: _record_id("ranked"))
 
     def to_dict(self) -> dict[str, Any]:
-        return _serialize_contract(asdict(self))
+        return serialize_dataclass(self)
 
 
 @dataclass(frozen=True, slots=True)
@@ -515,7 +516,7 @@ class ValidationRecord:
     validation_id: str = field(default_factory=lambda: _record_id("validation"))
 
     def to_dict(self) -> dict[str, Any]:
-        return _serialize_contract(asdict(self))
+        return serialize_dataclass(self)
 
 
 @dataclass(frozen=True, slots=True)
@@ -533,7 +534,7 @@ class ClaimRecord:
     claim_id: str = field(default_factory=lambda: _record_id("claim"))
 
     def to_dict(self) -> dict[str, Any]:
-        return _serialize_contract(asdict(self))
+        return serialize_dataclass(self)
 
 
 @dataclass(frozen=True, slots=True)
@@ -550,7 +551,7 @@ class AnswerRecord:
     answer_id: str = field(default_factory=lambda: _record_id("answer"))
 
     def to_dict(self) -> dict[str, Any]:
-        return _serialize_contract(asdict(self))
+        return serialize_dataclass(self)
 
 
 @dataclass(frozen=True, slots=True)
@@ -565,4 +566,4 @@ class FeedbackRecord:
     feedback_id: str = field(default_factory=lambda: _record_id("feedback"))
 
     def to_dict(self) -> dict[str, Any]:
-        return _serialize_contract(asdict(self))
+        return serialize_dataclass(self)

@@ -1,5 +1,134 @@
 # Current Process Status
 
+## Latest Update - 2026-06-02
+
+Workspace: `C:\Users\fredo\git_repos\MARACA\maraca_V02`
+
+Current active program: `project_generalize`.
+
+Status: in progress.
+Finished: false.
+
+Context rule added:
+
+- Before starting any new agent, check current goal/context usage.
+- If usage exceeds 50%, do not start another agent.
+- Wrap up the project files, update tracker status and finished flags, and write a handoff summary for a new chat.
+- Current chat exceeded the threshold, so no new agents should be started here.
+
+Current handoff file:
+
+- `project_generalize_handoff.md`
+
+Blocked handoff status:
+
+- Current observed goal usage: `1082685` tokens.
+- The same over-threshold condition has repeated across consecutive goal continuations.
+- This chat is blocked for additional agent-based implementation under the current context rule.
+- Resume from a new chat using the prompt in `project_generalize_handoff.md`.
+
+Validated through:
+
+- `P1.4.2 narrow repository hook extraction`
+- Focused P1.4.2 pytest: 59 passed.
+- Expanded phase-adjacent pytest: 147 passed.
+- Standard-library unittest discovery: 129 passed.
+- Full pytest: 268 passed.
+
+Next lane:
+
+- Next lane selection after P1.4.2.
+- `P1.5.2 additional telemetry builders` remains deferred until more telemetry golden coverage exists.
+- Feedback/evaluation domain save hooks and durable storage wrappers remain deferred until separate persistence golden tests exist.
+
+Current validation spot-check:
+
+- Date: 2026-06-02.
+- Full pytest with default host temp failed before test execution for `tests/test_backend_health.py::test_health_checks_load_env_file` because pytest could not access `C:\Users\fredo\AppData\Local\Temp\pytest-of-fredo`.
+- Full pytest with tracker-documented repo-local temp settings passed: 252 passed.
+- Standard-library unittest discovery passed: 125 passed.
+- Strict backend health passed against running Qdrant and Neo4j services.
+- Short keyword smoke passed with one keyword candidate, one citation, and an answer.
+- Direct import/export probe passed for backend, domain, storage, and shared helper surfaces.
+- `scripts\test_full_backend.ps1 -StrictServices` failed in this checkout because it hardcodes `.\.venv\Scripts\python.exe`, while the current validation environment uses the discovered sibling venv at `C:\Users\fredo\git_repos\MARACA\MARACA-1\.venv\Scripts\python.exe`.
+
+Production optimization request capture:
+
+- Date: 2026-06-02.
+- User requested production optimization with orchestration, code-worker, validation, and testing/task-update agents, continuous tracker/status updates, full process testing if finished, and a same-prompt takeover summary.
+- The persisted project handoff/tracker state still marks this chat as over the 50% context threshold, so no new agents were spawned and no production code changes were started in this chat.
+- `project_generalize_handoff.md` now contains the latest exact controlling prompt and a fresh-chat production-optimization takeover prompt.
+- Superseded next-lane note: P1.4.2 inventory/parity tests and narrow repository hook extraction are now validated. Next fresh-chat work is lane selection after P1.4.2.
+
+Current turn wrap-up:
+
+- Date: 2026-06-02.
+- Re-read `current_process_status.md`, `project_generalize_tracker.md`, `project_generalize_handoff.md`, `pyproject.toml`, `README.md`, and git status before taking action.
+- Goal tooling reported no active goal budget in this thread, but persisted project status still records the same chat as over the 50% agent-start threshold and blocked for additional agent-based implementation.
+- Decision: do not start orchestration, code-worker, validation, or testing/task-update agents in this chat; preserve the user prompt for a fresh chat instead.
+- Status remains in progress and `Finished: false`; no production optimization code was started or completed in this turn.
+
+Fresh delegation start:
+
+- Date: 2026-06-02.
+- Re-read the required handoff, tracker, status, test-plan, summary, and README files plus git status before starting new work.
+- Live goal tooling for this delegated run reported no active goal budget object and no over-threshold usage; this run is treated as a fresh under-threshold context.
+- Decision: begin P1.4.2 using the requested orchestration split, with inventory/parity tests only before any production hook extraction.
+- Status remains in progress and `Finished: false`.
+
+P1.4.2 inventory/parity progress:
+
+- Date: 2026-06-02.
+- Read-only orchestration inventory confirmed the current mixed strict/permissive repository-hook contract.
+- Added test-only parity coverage for ranking, synthesis, validation, planning, and orchestration runtime repository hook behavior.
+- Focused pytest for the touched P1.4.2 modules passed with `41 passed in 0.30s`.
+- Phase-adjacent pytest including shared repository hooks, feedback/evaluation, evaluation metrics, and telemetry golden coverage passed with `71 passed in 0.30s`.
+- No production hook extraction has been started.
+
+P1.4.2 validation repair and final gates:
+
+- Date: 2026-06-02.
+- Initial independent validation found parity coverage gaps in the four target files.
+- Repaired the tests to lock validation hook failure propagation, orchestration no-fallback return shape, and paired error/log detail separation.
+- Final focused pytest passed: `41 passed in 0.23s`.
+- Final expanded phase-adjacent pytest passed: `147 passed in 0.49s`.
+- Final unittest discovery passed: `Ran 129 tests in 0.390s`, `OK`.
+- Final full pytest passed: `268 passed in 2.85s`.
+- Targeted validator repair review passed with no blocking findings; residual risk is intentionally order-sensitive telemetry assertions.
+- Superseded by the later P1.4.2 narrow extraction validation entry below: the inventory/parity-test slice was implemented, validator-signed, and regressed before production extraction began.
+- `project_generalize_handoff.md` was refreshed with this fresh delegation progress and the same next boundary.
+
+Fresh continuation for P1.4.2 production extraction:
+
+- Date: 2026-06-02.
+- Live goal tooling reported no active budget object and no over-threshold usage.
+- Re-read the required handoff, tracker, generalization, summary, test-plan, status, README files, and git status before editing.
+- Decision: proceed with orchestration agents and begin only narrow production extraction backed by the signed P1.4.2 parity tests.
+- Boundary: do not touch durable save/snapshot/JSON/JSONL persistence behavior in this extraction.
+- Status remains in progress and `Finished: false`.
+
+P1.4.2 narrow production extraction progress:
+
+- Date: 2026-06-02.
+- Wired ranking, synthesis, validation, planning, and orchestration runtime repository hook paths through `shared.repository_hooks`.
+- Preserved strict ranking/synthesis/planning behavior with `required=True` and permissive validation/orchestration behavior with default helper calls.
+- Durable storage save/snapshot/JSON/JSONL files were not edited.
+- Focused P1.4.2 pytest passed with `59 passed in 0.32s`.
+- Expanded phase-adjacent pytest passed with `147 passed in 0.43s`.
+- Standard-library unittest discovery passed with `Ran 129 tests in 0.410s`, `OK`.
+- Full pytest passed with `268 passed in 3.25s`.
+- Superseded by the validation entry below: final test gates were complete at this point, and the current production-extraction validator signoff arrived afterward.
+
+P1.4.2 narrow extraction validated:
+
+- Date: 2026-06-02.
+- Independent validator passed the production extraction with no blocking behavior findings.
+- Corrected stale tracker wording that still said production extraction had not started.
+- Validated production scope: ranking, synthesis, validation, planning, and orchestration runtime repository hook wiring through `shared.repository_hooks`.
+- Deferred scope: feedback/evaluation domain save helpers and durable storage save/snapshot/JSON/JSONL wrappers.
+- Status: validated for the completed narrow P1.4.2 extraction scope.
+- Finished: true for the completed narrow extraction scope.
+
 Date: 2026-05-29
 Workspace: `C:\Users\Fred_U\Documents\MA-RAG-CAG-Graph`
 
@@ -1284,4 +1413,4 @@ Latest pytest result:
 
 ## Recommended Next Step
 
-Use the Milestone 13 orchestration runtime boundary as the handoff point for adding richer repair-loop execution state, including explicit repair attempts, previous action traces, and optional external lookup nodes.
+Use the validated P1.4.2 narrow repository hook extraction as the handoff point for selecting the next production optimization lane. Prefer test-first work: either P1.5.2 telemetry golden coverage or persistence/domain-save golden tests. Do not begin feedback/evaluation domain save hooks or durable repository wrappers until separate persistence golden tests exist.

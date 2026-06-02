@@ -8,6 +8,16 @@ from shared import (
 )
 
 
+def test_environment_profile_lookup_rejects_invalid_string_names() -> None:
+    try:
+        get_environment_profile("sandbox")
+    except ValueError as exc:
+        assert "sandbox" in str(exc)
+        return
+
+    raise AssertionError("Expected ValueError for invalid environment name.")
+
+
 def test_all_environment_profiles_exist() -> None:
     assert set(DEFAULT_ENVIRONMENT_PROFILES) == set(EnvironmentName)
     assert all(

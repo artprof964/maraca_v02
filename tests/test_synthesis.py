@@ -6,6 +6,7 @@ from shared import (
     ConfidenceLevel,
     EvidenceCandidate,
     LogEventType,
+    Partition,
     RankedEvidence,
     ReliabilityLevel,
     RetrievalMode,
@@ -13,6 +14,27 @@ from shared import (
 )
 from storage import InMemoryStorageRepository
 from synthesis import attach_citations, create_claim_records, generate_answer
+from synthesis import _add_log as _synthesis_add_log
+from synthesis import _save_error as _synthesis_save_error
+
+
+class RecordingSynthesisRepository:
+    def __init__(self) -> None:
+        self.calls: list[tuple[str, object]] = []
+
+    def add_log(self, log: object) -> None:
+        self.calls.append(("add_log", log))
+
+    def save_error(self, error: object) -> None:
+        self.calls.append(("save_error", error))
+
+
+class FailingSynthesisRepository:
+    def add_log(self, log: object) -> None:
+        raise RuntimeError("synthesis log write failed")
+
+    def save_error(self, error: object) -> None:
+        raise RuntimeError("synthesis error write failed")
 
 
 def _evidence(
@@ -43,6 +65,26 @@ def _evidence(
 
 
 class SynthesisTests(unittest.TestCase):
+    def test_repository_hook_helpers_preserve_current_strict_behavior(self) -> None:
+        repository = RecordingSynthesisRepository()
+        log = object()
+        error = object()
+
+        self.assertIs(_synthesis_add_log(None, log), log)
+        self.assertIs(_synthesis_save_error(None, error), error)
+        self.assertIs(_synthesis_add_log(repository, log), log)
+        self.assertIs(_synthesis_save_error(repository, error), error)
+
+        self.assertEqual(repository.calls, [("add_log", log), ("save_error", error)])
+        with self.assertRaises(AttributeError):
+            _synthesis_add_log(object(), log)
+        with self.assertRaises(AttributeError):
+            _synthesis_save_error(object(), error)
+        with self.assertRaisesRegex(RuntimeError, "synthesis log write failed"):
+            _synthesis_add_log(FailingSynthesisRepository(), log)
+        with self.assertRaisesRegex(RuntimeError, "synthesis error write failed"):
+            _synthesis_save_error(FailingSynthesisRepository(), error)
+
     def test_generate_answer_uses_only_approved_evidence(self) -> None:
         approved = _evidence(
             evidence_id="ev_public",
@@ -163,8 +205,28 @@ class SynthesisTests(unittest.TestCase):
         result = generate_answer("denied evidence", [denied], repository=repository)
 
         self.assertEqual(len(result.errors), 1)
+        self.assertEqual(result.errors[0].partition, Partition.SYNTHESIS)
+        self.assertEqual(result.errors[0].operation_name, "generate_answer")
+        self.assertEqual(result.errors[0].error_type.value, "validation")
+        self.assertEqual(result.errors[0].fallback_action.value, "stop")
+        self.assertFalse(result.errors[0].retryable)
         self.assertEqual(result.errors[0].details["event_name"], "insufficient_cited_evidence")
+        self.assertEqual(
+            result.errors[0].details,
+            {"event_name": "insufficient_cited_evidence", "query": "denied evidence"},
+        )
         self.assertEqual(result.logs[1].event_type, LogEventType.ERROR)
+        self.assertEqual(result.logs[1].operation_name, "generate_answer")
+        self.assertEqual(
+            result.logs[1].details,
+            {
+                "event_name": "insufficient_cited_evidence",
+                "query": "denied evidence",
+                "error_type": "validation",
+                "fallback_action": "stop",
+                "retry_count": 0,
+            },
+        )
         self.assertIn(result.errors[0].error_id, repository.errors)
 
 

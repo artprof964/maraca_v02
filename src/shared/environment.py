@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from enum import StrEnum
 from types import MappingProxyType
 from typing import Any, Mapping
 
-from .contracts import _serialize_contract
+from .enums import lookup_str_enum
+from .serialization import serialize_dataclass
 
 
 class EnvironmentName(StrEnum):
@@ -33,7 +34,7 @@ class EnvironmentProfile:
     default_budget_tokens: int
 
     def to_dict(self) -> dict[str, Any]:
-        return _serialize_contract(asdict(self))
+        return serialize_dataclass(self)
 
 
 _DEFAULT_ENVIRONMENT_PROFILES: dict[EnvironmentName, EnvironmentProfile] = {
@@ -101,8 +102,7 @@ DEFAULT_ENVIRONMENT_PROFILES: Mapping[EnvironmentName, EnvironmentProfile] = Map
 
 
 def get_environment_profile(name: EnvironmentName | str) -> EnvironmentProfile:
-    environment_name = EnvironmentName(name)
-    return DEFAULT_ENVIRONMENT_PROFILES[environment_name]
+    return lookup_str_enum(DEFAULT_ENVIRONMENT_PROFILES, EnvironmentName, name)
 
 
 def serialize_environment_profile(profile: EnvironmentProfile) -> dict[str, Any]:

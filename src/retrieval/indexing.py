@@ -10,6 +10,7 @@ import re
 from typing import Iterable, Mapping
 
 from shared.contracts import LogEvent, Partition, new_correlation_id
+from shared.ids import stable_id
 from shared.policies import create_success_log_event
 from shared.records import ChunkRecord
 from storage import InMemoryStorageRepository
@@ -101,7 +102,7 @@ def generate_embedding(chunk: ChunkRecord, *, dimensions: int = VECTOR_DIMENSION
         vector[bucket] += sign * (1.0 + math.log(count))
     norm = math.sqrt(sum(value * value for value in vector))
     normalized = tuple(round(value / norm, 6) for value in vector) if norm else tuple(vector)
-    embedding_id = _stable_id("emb", chunk.chunk_id, "|".join(terms), str(dimensions))
+    embedding_id = stable_id("emb", chunk.chunk_id, "|".join(terms), str(dimensions))
     return EmbeddingRecord(
         chunk_id=chunk.chunk_id,
         vector=normalized,
@@ -118,7 +119,7 @@ def extract_sparse_terms(chunk: ChunkRecord) -> SparseTermsRecord | None:
         return None
     counts = Counter(terms)
     weights = {term: _term_weight(term, count) for term, count in sorted(counts.items())}
-    sparse_terms_id = _stable_id("sparse", chunk.chunk_id, "|".join(sorted(counts)))
+    sparse_terms_id = stable_id("sparse", chunk.chunk_id, "|".join(sorted(counts)))
     return SparseTermsRecord(
         chunk_id=chunk.chunk_id,
         terms=tuple(sorted(counts)),
@@ -367,11 +368,6 @@ def _cosine(left: tuple[float, ...], right: tuple[float, ...]) -> float:
 
 def _stable_int(value: str) -> int:
     return int(hashlib.sha256(value.encode("utf-8")).hexdigest()[:16], 16)
-
-
-def _stable_id(prefix: str, *parts: str) -> str:
-    digest = hashlib.sha256("\x1f".join(parts).encode("utf-8")).hexdigest()[:24]
-    return f"{prefix}_{digest}"
 
 
 def _top_candidates(candidates: Iterable[IndexCandidate], top_k: int) -> tuple[IndexCandidate, ...]:

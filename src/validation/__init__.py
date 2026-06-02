@@ -8,7 +8,8 @@ import re
 from typing import Iterable, Mapping, Sequence
 
 from shared.contracts import ErrorEnvelope, ErrorType, FallbackAction, LogEvent, Partition, new_correlation_id
-from shared.policies import create_error_envelope, create_error_log_event, create_success_log_event
+from shared.policies import create_error_telemetry, create_success_log_event
+from shared.repository_hooks import add_repository_log, call_repository_hook, save_repository_error
 from shared.records import (
     AccessDecision,
     CitationStatus,
@@ -217,36 +218,25 @@ def validate_answer_evidence(
     if failed:
         error_type = ErrorType.ACCESS if ValidationCriterion.ACCESS in failed else ErrorType.VALIDATION
         fallback = FallbackAction.STOP if repair_action is RepairAction.STOP else FallbackAction.REPAIR
-        error = create_error_envelope(
+        error, log = create_error_telemetry(
             correlation_id=corr,
             partition=Partition.VALIDATION,
             operation_name="validate_answer_evidence",
             error_type=error_type,
             error_message=f"Validation failed criteria: {', '.join(criterion.value for criterion in failed)}.",
+            log_message="Validation requires repair before synthesis.",
             fallback_action=fallback,
             retryable=repair_action not in {RepairAction.STOP, RepairAction.NONE},
-            details={
+            event_name=event_name,
+            error_details={
                 "event_name": event_name,
                 "validation_id": validation.validation_id,
                 "repair_action": repair_action.value,
             },
+            log_details={"validation_id": validation.validation_id, "repair_action": repair_action.value},
         )
         errors.append(_save_error(repository, error))
-        logs.append(
-            _add_log(
-                repository,
-                create_error_log_event(
-                    correlation_id=corr,
-                    partition=Partition.VALIDATION,
-                    operation_name="validate_answer_evidence",
-                    error_type=error_type,
-                    event_name=event_name,
-                    message="Validation requires repair before synthesis.",
-                    fallback_action=fallback,
-                    details={"validation_id": validation.validation_id, "repair_action": repair_action.value},
-                ),
-            )
-        )
+        logs.append(_add_log(repository, log))
 
     _save_validation(repository, validation)
     for claim in claim_support.claims:
@@ -778,26 +768,20 @@ def _clamp(value: float) -> float:
 
 
 def _add_log(repository: InMemoryStorageRepository | None, log: LogEvent) -> LogEvent:
-    if repository is not None and hasattr(repository, "add_log"):
-        repository.add_log(log)
-    return log
+    return add_repository_log(repository, log)
 
 
 def _save_error(repository: InMemoryStorageRepository | None, error: ErrorEnvelope) -> ErrorEnvelope:
-    if repository is not None and hasattr(repository, "save_error"):
-        repository.save_error(error)
-    return error
+    return save_repository_error(repository, error)
 
 
 def _save_validation(repository: InMemoryStorageRepository | None, validation: ValidationRecord) -> ValidationRecord:
-    if repository is not None and hasattr(repository, "save_validation_record"):
-        repository.save_validation_record(validation)
+    call_repository_hook(repository, "save_validation_record", validation)
     return validation
 
 
 def _save_claim(repository: InMemoryStorageRepository | None, claim: ClaimRecord) -> ClaimRecord:
-    if repository is not None and hasattr(repository, "save_claim_record"):
-        repository.save_claim_record(claim)
+    call_repository_hook(repository, "save_claim_record", claim)
     return claim
 
 

@@ -230,6 +230,45 @@ class FeedbackEvaluationTests(unittest.TestCase):
         self.assertEqual(result.logs[0].details["event_name"], "feedback_capture_failed")
         self.assertTrue(result.errors[0].retryable)
 
+    def test_feedback_optional_log_error_hooks_are_noops_when_missing(self) -> None:
+        class PartialFeedbackRepository:
+            def __init__(self) -> None:
+                self.feedback: dict[str, FeedbackRecord] = {}
+
+            def save_feedback(self, feedback: FeedbackRecord, trace_reference: object) -> FeedbackRecord:
+                self.feedback[feedback.feedback_id] = feedback
+                return feedback
+
+        repository = PartialFeedbackRepository()
+
+        result = capture_feedback(
+            request_id="req_feedback",
+            answer=_answer(),
+            evidence=[_evidence()],
+            user_rating=UserRating.PARTIALLY_USEFUL,
+            repository=repository,  # type: ignore[arg-type]
+        )
+
+        self.assertIn(result.feedback.feedback_id, repository.feedback)
+        self.assertEqual(result.logs[0].details["event_name"], "feedback_captured")
+        self.assertEqual(result.errors, ())
+
+    def test_feedback_error_persistence_is_optional_on_write_failure(self) -> None:
+        class FailingPartialFeedbackRepository:
+            def save_feedback(self, feedback: FeedbackRecord, trace_reference: object) -> FeedbackRecord:
+                raise RuntimeError("metadata store unavailable")
+
+        result = capture_feedback(
+            request_id="req_feedback",
+            answer=_answer(),
+            evidence=[_evidence()],
+            user_rating=UserRating.INCORRECT,
+            repository=FailingPartialFeedbackRepository(),  # type: ignore[arg-type]
+        )
+
+        self.assertEqual(result.logs[0].details["event_name"], "feedback_capture_failed")
+        self.assertTrue(result.errors[0].retryable)
+
     def test_evaluation_trace_write_failure_preserves_trace_for_retry(self) -> None:
         class FailingEvaluationRepository(InMemoryEvaluationRepository):
             def save_trace(self, trace: object) -> object:
@@ -244,6 +283,43 @@ class FeedbackEvaluationTests(unittest.TestCase):
 
         self.assertEqual(result.trace.evidence_ids, ("ev_feedback",))
         self.assertEqual(result.logs[0].event_type, LogEventType.ERROR)
+        self.assertEqual(result.logs[0].details["event_name"], "evaluation_trace_store_failed")
+        self.assertTrue(result.errors[0].retryable)
+
+    def test_evaluation_optional_log_error_hooks_are_noops_when_missing(self) -> None:
+        class PartialEvaluationRepository:
+            def __init__(self) -> None:
+                self.traces: dict[str, object] = {}
+
+            def save_trace(self, trace: object) -> object:
+                self.traces[trace.trace_id] = trace
+                return trace
+
+        repository = PartialEvaluationRepository()
+
+        result = store_evaluation_trace(
+            request_id="req_feedback",
+            answer=_answer(),
+            evidence=[_evidence()],
+            repository=repository,  # type: ignore[arg-type]
+        )
+
+        self.assertIn(result.trace.trace_id, repository.traces)
+        self.assertEqual(result.logs[0].details["event_name"], "evaluation_trace_stored")
+        self.assertEqual(result.errors, ())
+
+    def test_evaluation_error_persistence_is_optional_on_write_failure(self) -> None:
+        class FailingPartialEvaluationRepository:
+            def save_trace(self, trace: object) -> object:
+                raise RuntimeError("metadata store unavailable")
+
+        result = store_evaluation_trace(
+            request_id="req_feedback",
+            answer=_answer(),
+            evidence=[_evidence()],
+            repository=FailingPartialEvaluationRepository(),  # type: ignore[arg-type]
+        )
+
         self.assertEqual(result.logs[0].details["event_name"], "evaluation_trace_store_failed")
         self.assertTrue(result.errors[0].retryable)
 

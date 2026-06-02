@@ -1,6 +1,7 @@
 import unittest
 
 from shared import ChunkRecord
+from shared import stable_id
 from storage import InMemoryStorageRepository, commit_chunks
 from retrieval import (
     InMemoryKeywordIndex,
@@ -40,6 +41,25 @@ class IndexingTests(unittest.TestCase):
         self.assertEqual({embedding.chunk_id for embedding in embeddings}, {chunk.chunk_id for chunk in chunks})
         self.assertTrue(all(embedding.embedding_id.startswith("emb_") for embedding in embeddings))
         self.assertTrue(all(len(embedding.vector) == 32 for embedding in embeddings))
+
+    def test_index_record_ids_match_shared_stable_id_helper(self) -> None:
+        chunk = _chunk(0, "Vector retrieval finds semantic graph evidence.")
+
+        embedding = generate_embeddings([chunk])[0]
+        sparse = extract_sparse_terms(chunk)
+
+        self.assertEqual(
+            embedding.embedding_id,
+            stable_id("emb", chunk.chunk_id, "vector|retrieval|finds|semantic|graph|evidence", "32"),
+        )
+        self.assertEqual(embedding.embedding_id, "emb_dc6d9a5af222915cffab4be6")
+        self.assertIsNotNone(sparse)
+        assert sparse is not None
+        self.assertEqual(
+            sparse.sparse_terms_id,
+            stable_id("sparse", chunk.chunk_id, "|".join(sorted(sparse.terms))),
+        )
+        self.assertEqual(sparse.sparse_terms_id, "sparse_d5bcc5a8924f4729e0bb60a9")
 
     def test_extract_sparse_terms_preserves_exact_identifiers_and_quoted_phrases(self) -> None:
         chunk = _chunk(

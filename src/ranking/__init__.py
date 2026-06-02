@@ -9,8 +9,9 @@ import re
 from typing import Callable, Iterable, Mapping, Sequence
 
 from shared.contracts import ErrorEnvelope, ErrorType, FallbackAction, LogEvent, Partition, new_correlation_id
-from shared.policies import create_error_envelope, create_error_log_event, create_success_log_event
+from shared.policies import create_error_telemetry, create_success_log_event
 from shared.records import EvidenceCandidate, RankedEvidence, RelevanceLabel, ReliabilityLevel
+from shared.repository_hooks import add_repository_log, save_repository_error
 
 try:
     from storage import InMemoryStorageRepository
@@ -108,32 +109,21 @@ def select_ranked_evidence(
         scored = _score_candidates(query, normalized, ranking_config, reranker=reranker)
     except Exception as exc:  # noqa: BLE001 - fallback is a required safety behavior.
         used_fallback = True
-        error = create_error_envelope(
+        error, log = create_error_telemetry(
             correlation_id=corr,
             partition=Partition.RANKING,
             operation_name="select_ranked_evidence",
             error_type=ErrorType.MODEL,
             error_message=f"Reranker failed: {exc}",
+            log_message="Reranker failed; using normalized retrieval scores.",
             fallback_action=FallbackAction.SKIP,
-            details={"event_name": "reranker_fallback", "candidate_count": len(normalized)},
+            event_name="reranker_fallback",
+            error_details={"event_name": "reranker_fallback", "candidate_count": len(normalized)},
+            log_details={"candidate_count": len(normalized)},
         )
         errors.append(error)
         _save_error(repository, error)
-        logs.append(
-            _add_log(
-                repository,
-                create_error_log_event(
-                    correlation_id=corr,
-                    partition=Partition.RANKING,
-                    operation_name="select_ranked_evidence",
-                    error_type=ErrorType.MODEL,
-                    event_name="reranker_fallback",
-                    message="Reranker failed; using normalized retrieval scores.",
-                    fallback_action=FallbackAction.SKIP,
-                    details={"candidate_count": len(normalized)},
-                ),
-            )
-        )
+        logs.append(_add_log(repository, log))
         scored = _fallback_scores(normalized)
 
     ordered = _apply_source_diversity(scored, max_per_source=ranking_config.max_per_source)
@@ -376,15 +366,11 @@ def _clamp(value: float) -> float:
 
 
 def _add_log(repository: InMemoryStorageRepository | None, log: LogEvent) -> LogEvent:
-    if repository is not None:
-        repository.add_log(log)
-    return log
+    return add_repository_log(repository, log, required=True)
 
 
 def _save_error(repository: InMemoryStorageRepository | None, error: ErrorEnvelope) -> ErrorEnvelope:
-    if repository is not None:
-        repository.save_error(error)
-    return error
+    return save_repository_error(repository, error, required=True)
 
 
 __all__ = [

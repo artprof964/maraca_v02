@@ -23,6 +23,7 @@ from shared.contracts import (
     new_correlation_id,
     _utc_now,
 )
+from shared.enums import coerce_str_enum
 from shared.fixtures import fixture_catalog_base, fixture_sources_base, resolve_fixture_path
 from shared.policies import create_error_envelope, create_start_log_event, create_success_log_event
 from shared.records import (
@@ -170,17 +171,23 @@ def start_ingestion_job(
     source: SourceRecord,
     *,
     repository: InMemoryIngestionJobRepository | None = None,
-    trigger_type: IngestionTriggerType = IngestionTriggerType.MANUAL,
+    trigger_type: IngestionTriggerType | str = IngestionTriggerType.MANUAL,
     correlation_id: str | None = None,
 ) -> IngestionJob:
     """Create and log a running ingestion job for a source."""
 
     repo = repository or InMemoryIngestionJobRepository()
     corr = correlation_id or new_correlation_id("ingestion")
+    resolved_trigger_type = coerce_str_enum(
+        IngestionTriggerType,
+        trigger_type,
+        field_name="trigger_type",
+        error_factory=_ingestion_enum_error,
+    )
     job = repo.save_job(
         IngestionJob(
             source_id=source.source_id,
-            trigger_type=trigger_type,
+            trigger_type=resolved_trigger_type,
             correlation_id=corr,
             status=IngestionStatus.RUNNING,
         )
@@ -194,6 +201,14 @@ def start_ingestion_job(
         details={"source_id": source.source_id, "ingestion_job_id": job.ingestion_job_id},
     )
     return repo.add_log(job, log)
+
+
+def _ingestion_enum_error(field_name: str, value: object) -> IngestionError:
+    return IngestionError(
+        f"invalid {field_name}: {value!r}",
+        error_type=ErrorType.PARSING,
+        retryable=False,
+    )
 
 
 def extract_source_content(

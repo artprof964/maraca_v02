@@ -13,6 +13,7 @@ from shared import (
     RetrievalMode,
     QueryType,
     SourceType,
+    stable_id,
 )
 from source_registry import SourceRegistry
 from storage import (
@@ -73,6 +74,22 @@ class GraphLayerTests(unittest.TestCase):
         self.assertTrue(all(entity.source_ids == [chunks[0].source_id] for entity in first.entities))
         self.assertTrue(all(entity.confidence is not None for entity in first.entities))
         self.assertIn("graph:entity:", " ".join(first.chunks[0].quality_flags))
+
+    def test_graph_record_ids_match_shared_stable_id_helper(self) -> None:
+        _, chunks = _chunk_bundle(("A depends on B.",))
+
+        result = extract_graph_records(chunks)
+
+        entity_ids = {entity.entity_name: entity.entity_id for entity in result.entities}
+        self.assertEqual(entity_ids["A"], stable_id("entity", "a"))
+        self.assertEqual(entity_ids["B"], stable_id("entity", "b"))
+        self.assertEqual(entity_ids["A"], "entity_ca978112ca1bbdcafac231b3")
+        self.assertEqual(entity_ids["B"], "entity_3e23e8160039594a33894f65")
+        self.assertEqual(
+            result.relations[0].relation_id,
+            stable_id("rel", "a", "depends_on", "b", chunks[0].chunk_id),
+        )
+        self.assertEqual(result.relations[0].relation_id, "rel_a1c7907523eb2656b450a621")
 
     def test_extract_graph_records_creates_fixture_relations(self) -> None:
         _, chunks = _chunk_bundle(("A depends on B. B supports C. C updates D.",))

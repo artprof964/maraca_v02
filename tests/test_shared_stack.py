@@ -9,10 +9,21 @@ from shared import (
     get_baseline_stack,
     get_fallback_component,
     get_fallback_stack,
+    lookup_enum_key,
     serialize_stack_component,
     serialize_stack_components,
     validate_stack_selections,
 )
+
+
+def test_stack_component_lookup_rejects_invalid_string_categories() -> None:
+    try:
+        get_baseline_component("not_a_category")
+    except ValueError as exc:
+        assert "not_a_category" in str(exc)
+        return
+
+    raise AssertionError("Expected ValueError for invalid stack component category.")
 
 
 def test_required_categories_have_baseline_and_fallback_components() -> None:
@@ -61,6 +72,26 @@ def test_fallback_mocks_exist_for_every_required_category() -> None:
 def test_component_lookup_accepts_enum_and_string_categories() -> None:
     assert get_baseline_component(StackComponentCategory.GRAPH_STORE).name == "Neo4j"
     assert get_baseline_component("orchestration").name == "LangGraph"
+
+
+def test_component_lookup_preserves_missing_mapping_keyerror() -> None:
+    partial_mapping = {
+        category: component
+        for category, component in BASELINE_STACK_BY_CATEGORY.items()
+        if category is not StackComponentCategory.VECTOR_STORE
+    }
+
+    try:
+        lookup_enum_key(
+            partial_mapping,
+            StackComponentCategory,
+            StackComponentCategory.VECTOR_STORE,
+        )
+    except KeyError as exc:
+        assert exc.args == (StackComponentCategory.VECTOR_STORE,)
+        return
+
+    raise AssertionError("Expected KeyError for missing stack component category.")
 
 
 def test_serialization_is_stable_and_json_ready() -> None:

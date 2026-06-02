@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass, replace
-import hashlib
 import re
 from typing import Iterable
 
 from shared.contracts import LogEvent, Partition, new_correlation_id
+from shared.ids import stable_id
 from shared.policies import create_success_log_event
 from shared.records import ChunkRecord, EntityRecord, EntityType, RelationRecord, RelationType
 
@@ -97,7 +97,7 @@ def extract_graph_records(
             aliases=aliases,
             confidence=_entity_confidence(entity_chunks[key]),
             source_ids=sorted(entity_sources[key]),
-            entity_id=_stable_id("entity", key),
+            entity_id=stable_id("entity", key),
         )
         entities_by_key[key] = entity
 
@@ -113,7 +113,7 @@ def extract_graph_records(
             relation_type=relation_type,
             evidence_chunk_ids=evidence_chunk_ids,
             confidence=_relation_confidence(evidence_chunk_ids),
-            relation_id=_stable_id(
+            relation_id=stable_id(
                 "rel",
                 subject_key,
                 relation_type.value,
@@ -247,11 +247,6 @@ def _with_graph_flags(
         graph_flags.append("graph_extraction_skipped")
     quality_flags = tuple(dict.fromkeys([*chunk.quality_flags, *graph_flags]))
     return replace(chunk, quality_flags=list(quality_flags))
-
-
-def _stable_id(prefix: str, *parts: str) -> str:
-    digest = hashlib.sha256("\x1f".join(parts).encode("utf-8")).hexdigest()[:24]
-    return f"{prefix}_{digest}"
 
 
 def _enrichment_log(

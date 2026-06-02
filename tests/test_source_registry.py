@@ -66,6 +66,70 @@ def test_register_source_preserves_external_link() -> None:
     assert source.external_link == external_link
 
 
+def test_register_source_accepts_enum_and_string_governance_inputs() -> None:
+    registry = SourceRegistry()
+
+    source = registry.register_source(
+        source_name="String governance source",
+        source_type="web",
+        owner="research",
+        access_method=AccessMethod.URL,
+        access_level="internal",
+        license_policy="allowed",
+        reliability_level="high",
+        freshness_policy="scheduled",
+        status="active",
+    )
+
+    assert source.source_type is SourceType.WEB
+    assert source.access_method is AccessMethod.URL
+    assert source.access_policy_id == "access:internal"
+    assert source.license_policy is LicensePolicy.ALLOWED
+    assert source.reliability_level is ReliabilityLevel.HIGH
+    assert source.freshness_policy is FreshnessPolicy.SCHEDULED
+    assert source.status is SourceStatus.ACTIVE
+
+
+def test_register_source_wraps_invalid_enum_strings() -> None:
+    registry = SourceRegistry()
+
+    try:
+        registry.register_source(
+            source_name="Invalid source",
+            source_type="not_a_source_type",
+            access_method=AccessMethod.URL,
+        )
+    except SourceRegistryError as exc:
+        assert str(exc) == "invalid source_type: 'not_a_source_type'"
+        assert isinstance(exc.__cause__, ValueError)
+        return
+
+    raise AssertionError("Expected SourceRegistryError for invalid source_type.")
+
+
+def test_update_source_status_accepts_string_and_wraps_invalid_status() -> None:
+    registry = SourceRegistry()
+    source = registry.register_source(
+        source_name="Status source",
+        source_type=SourceType.DOCUMENT,
+        owner="ops",
+        access_method=AccessMethod.UPLOAD,
+    )
+
+    updated, _ = registry.update_source_status(source.source_id, "deprecated")
+
+    assert updated.status is SourceStatus.DEPRECATED
+
+    try:
+        registry.update_source_status(source.source_id, "archived")
+    except SourceRegistryError as exc:
+        assert str(exc) == "invalid status: 'archived'"
+        assert isinstance(exc.__cause__, ValueError)
+        return
+
+    raise AssertionError("Expected SourceRegistryError for invalid status.")
+
+
 def test_register_source_sets_default_status_pending_when_owner_missing() -> None:
     registry = SourceRegistry()
 

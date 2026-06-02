@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
-from datetime import UTC, date, datetime
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 from uuid import uuid4
+
+from .serialization import (
+    serialize_dataclass,
+    serialize_mapping,
+    serialize_value,
+)
 
 
 def new_correlation_id(prefix: str = "corr") -> str:
@@ -18,22 +24,8 @@ def _utc_now() -> datetime:
     return datetime.now(UTC)
 
 
-def _serialize_value(value: Any) -> Any:
-    if isinstance(value, StrEnum):
-        return value.value
-    if isinstance(value, datetime | date):
-        return value.isoformat()
-    if isinstance(value, list):
-        return [_serialize_value(item) for item in value]
-    if isinstance(value, tuple):
-        return tuple(_serialize_value(item) for item in value)
-    if isinstance(value, dict):
-        return {key: _serialize_value(item) for key, item in value.items()}
-    return value
-
-
-def _serialize_contract(data: dict[str, Any]) -> dict[str, Any]:
-    return {key: _serialize_value(value) for key, value in data.items()}
+_serialize_value = serialize_value
+_serialize_contract = serialize_mapping
 
 
 class Partition(StrEnum):
@@ -108,7 +100,7 @@ class ErrorEnvelope:
     details: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        return _serialize_contract(asdict(self))
+        return serialize_dataclass(self)
 
 
 @dataclass(frozen=True, slots=True)
@@ -128,4 +120,4 @@ class LogEvent:
     details: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        return _serialize_contract(asdict(self))
+        return serialize_dataclass(self)

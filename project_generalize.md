@@ -40,7 +40,8 @@ The current optimized sequence is:
 6. **P1.5 telemetry/event golden-output inventory** - completed test-first behavior lock for representative logs and errors.
 7. **P1.5.1 paired error telemetry helper** - completed production extraction covered by P1.5 golden tests.
 8. **P1.4.2 narrow repository hook extraction** - completed and validated for ranking, synthesis, validation, planning, and orchestration runtime hook wiring.
-9. **Next lane selection** - choose the next high-value production optimization lane; feedback/evaluation domain save hooks and durable repository wrappers remain deferred until separate persistence golden tests exist.
+9. **P1.4.2 broader repository save/orchestration hook extraction** - completed and validated for feedback/evaluation domain save helpers plus additional orchestration hook parity; durable storage wrappers remain deferred.
+10. **Next lane selection** - choose the next high-value production optimization lane; durable repository wrappers and broader telemetry builders remain deferred until separate golden coverage exists.
 
 ## Task Promotion Model
 
@@ -229,7 +230,7 @@ Validation:
 - full unittest discovery: 125 passed
 - full pytest: 242 passed
 
-Result: validated first slice with validator signoff and tracker update. Broader validation, ranking, synthesis, planning, and orchestration repository hook wiring was completed later as P1.4.2; feedback/evaluation domain save hooks and durable repository wrappers remain deferred until persistence golden tests exist.
+Result: validated first slice with validator signoff and tracker update. Broader validation, ranking, synthesis, planning, orchestration repository hook wiring, and feedback/evaluation domain save hook wiring were completed later as P1.4.2 follow-up slices; durable repository wrappers remain deferred until persistence golden tests exist.
 
 Task: **P1.5 telemetry/event golden-output inventory**
 
@@ -239,7 +240,7 @@ Scope:
 - Preserve event names, severities, retry counts, fallback actions, output references, messages, operation names, and error envelopes.
 - Keep implementation test-only because this surface is high risk.
 - Defer enrichment, storage, retrieval execution, orchestration runtime/adapters, feedback improvement tasks, and evaluation batch/observability telemetry.
-- Keep feedback/evaluation domain save hooks and durable repository wrappers deferred until behavior inventory and persistence golden tests exist.
+- Keep durable repository wrappers deferred until behavior inventory and persistence golden tests exist.
 
 Validation:
 
@@ -284,9 +285,12 @@ Validated production scope:
 - planning required log hooks and optional claim save wired through `shared.repository_hooks`
 - orchestration runtime adapter log/error hooks wired through permissive `shared.repository_hooks`
 
+Follow-up validated scope:
+
+- feedback/evaluation domain save helpers wired through `shared.repository_hooks.call_repository_hook`
+
 Deferred scope:
 
-- feedback/evaluation domain save helpers
 - durable storage save/snapshot/JSON/JSONL wrappers
 
 Validation:
@@ -296,17 +300,35 @@ Validation:
 - full unittest discovery: 129 passed
 - full pytest: 268 passed
 
-Result: validated with validator signoff and tracker update. Durable/domain-save wrapper work remains deferred until persistence golden tests exist.
+Broader follow-up validation:
+
+- focused feedback/evaluation parity pytest: 36 passed
+- broader phase-adjacent pytest: 112 passed
+- full unittest discovery: 139 passed
+- full pytest: 304 passed
+- lenient health and smoke passed; strict service health skipped because Qdrant/Neo4j containers were exited
+
+Result: narrow and broader P1.4.2 repository hook extraction validated with validator signoff and tracker update. Durable wrapper work remains deferred until persistence golden tests exist.
+
+P5.3 backend service/env defaults validation:
+
+- focused P5.3 pytest: 30 passed
+- backend-adjacent phase pytest: 70 passed
+- full unittest discovery: 141 passed
+- full pytest: 307 passed
+- lenient health and smoke passed; strict service health skipped because the Docker daemon/API pipe is unavailable
+
+Result: P5.3 backend service/env defaults inventory/parity validated with validator signoff and tracker update. Durable wrapper work and broad telemetry builders remain deferred until their own golden coverage exists.
 
 ## Next Orchestration Task
 
-Task: **Next lane selection after P1.4.2**
+Task: **Next lane selection after P5.3 backend service/env defaults validation**
 
 Scope:
 
 - Select the next production optimization lane from the remaining backlog.
 - Prefer test-first work for any high-risk surface.
-- Do not begin feedback/evaluation domain save or durable repository wrapper extraction until separate persistence golden tests exist.
+- Do not begin durable repository wrapper extraction until separate persistence golden tests exist.
 
 Initial validation:
 
@@ -316,7 +338,7 @@ Initial validation:
 
 ## Handoff Note
 
-The latest validated lane is P1.4.2 narrow repository hook extraction. Continue from `project_generalize_handoff.md`, check the context threshold before starting agents, and select the next production optimization lane. Feedback/evaluation domain save hooks and durable repository wrappers require separate persistence golden tests before extraction.
+The latest validated lane is P5.3 backend service/env defaults inventory/parity. Continue from `project_generalize_handoff.md`, check the context threshold before starting agents, and select the next production optimization lane. Durable repository wrappers require separate persistence golden tests before extraction.
 
 ## Completion Criteria
 

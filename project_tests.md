@@ -16,14 +16,16 @@ This test plan defines unit tests, validator tests, integration tests, logging/e
 
 ## Current Full Test Gate
 
-Latest observed results after full backend environment setup:
+Latest observed results after the 2026-06-04 P5.3 backend service/env defaults validation:
 
-- Standard-library unittest discovery: 115 tests passed.
-- Pytest suite: 205 tests passed.
+- Focused P5.3 pytest: 30 tests passed.
+- Backend-adjacent phase pytest: 70 tests passed.
+- Standard-library unittest discovery: 141 tests passed.
+- Pytest suite: 307 tests passed.
 - Full backend imports: local backend packages plus Qdrant client, Neo4j driver, LangGraph, and LlamaIndex core import successfully.
 - Dependency check: no broken requirements.
-- Service health command: regular mode passes with Docker/service warnings; strict mode reports blocked Qdrant/Neo4j services on this host because Docker is not installed.
-- Short keyword manual: `rag-center-smoke` returns one keyword candidate, keyword execution mode, one citation, and a cited answer.
+- Service health command: lenient `rag-center-health --env-file .env.example` passes optional imports, Docker/env checks, Qdrant/Neo4j env defaults, and LangGraph runtime; strict service health was skipped because the Docker daemon/API pipe is unavailable on this host.
+- Short keyword manual: `rag-center-smoke` returns one keyword candidate, keyword execution mode, one citation, 20 logs, and a cited answer.
 - Setup artifact coverage verifies the package console commands, `full`/`backend` extras, local `.env.example` contract, Docker Compose service definitions, and setup/test script wiring.
 - Backend adapter runtime coverage now includes local durable health checks, transactional capability selection, adapter-driven recovery commits, governance-preserving persistence, executable vector indexing/search, Qdrant-compatible health/index/search behavior, Neo4j-compatible graph health/index/traversal behavior, and governed backend write failure reporting.
 - Orchestration runtime coverage now includes LangGraph-compatible local fallback execution, injected app execution, app-failure fallback, unavailable disabled-fallback behavior, and serialized run summaries.

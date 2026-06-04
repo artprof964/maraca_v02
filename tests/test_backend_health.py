@@ -40,21 +40,42 @@ def test_health_checks_load_env_file(tmp_path, monkeypatch) -> None:
         "\n".join(
             (
                 "QDRANT_URL=http://example.test:6333",
+                "QDRANT_COLLECTION=env_chunks",
                 "NEO4J_URI=bolt://example.test:7687",
                 "NEO4J_USER=neo4j",
                 "NEO4J_PASSWORD=secret",
+                "NEO4J_DATABASE=env_graph",
             )
         ),
         encoding="utf-8",
     )
-    for key in ("QDRANT_URL", "NEO4J_URI", "NEO4J_USER", "NEO4J_PASSWORD"):
+    for key in ("QDRANT_URL", "QDRANT_COLLECTION", "NEO4J_URI", "NEO4J_USER", "NEO4J_PASSWORD", "NEO4J_DATABASE"):
         monkeypatch.delenv(key, raising=False)
 
     checks = run_health_checks(env_file=str(env_file))
     by_name = {check.name: check for check in checks}
 
     assert by_name["QDRANT_URL"].ok
+    assert by_name["QDRANT_COLLECTION"].ok
+    assert by_name["QDRANT_COLLECTION"].detail == "env_chunks"
     assert by_name["NEO4J_URI"].ok
     assert by_name["NEO4J_USER"].ok
     assert by_name["NEO4J_PASSWORD"].ok
     assert by_name["NEO4J_PASSWORD"].detail == "<set>"
+    assert by_name["NEO4J_DATABASE"].ok
+    assert by_name["NEO4J_DATABASE"].detail == "env_graph"
+
+
+def test_health_checks_report_backend_name_defaults_when_env_values_are_absent(monkeypatch) -> None:
+    for key in ("QDRANT_COLLECTION", "NEO4J_DATABASE"):
+        monkeypatch.delenv(key, raising=False)
+
+    checks = run_health_checks(env_file=None)
+    by_name = {check.name: check for check in checks}
+
+    assert by_name["QDRANT_COLLECTION"].ok
+    assert by_name["QDRANT_COLLECTION"].status == "default"
+    assert by_name["QDRANT_COLLECTION"].detail == "evidence_chunks"
+    assert by_name["NEO4J_DATABASE"].ok
+    assert by_name["NEO4J_DATABASE"].status == "default"
+    assert by_name["NEO4J_DATABASE"].detail == "neo4j"

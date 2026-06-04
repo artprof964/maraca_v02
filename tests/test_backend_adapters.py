@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import os
 import tempfile
 import unittest
 from types import SimpleNamespace
+from unittest.mock import patch
 
+import storage.neo4j_runtime as neo4j_runtime
+import storage.qdrant_runtime as qdrant_runtime
 from ingestion import NormalizedDocument, RawArtifact, create_document_record, split_document_into_chunks
 from enrichment import extract_graph_records
 from storage import (
@@ -377,6 +381,30 @@ class BackendAdapterTests(unittest.TestCase):
         self.assertNotIn("text", candidate)
         self.assertEqual(adapter.to_config().fallback_adapter, "in_memory_vector_index")
 
+    def test_qdrant_vector_backend_adapter_uses_collection_env_default_and_explicit_override(self) -> None:
+        with patch.dict(os.environ, {"QDRANT_COLLECTION": "env_chunks"}):
+            env_adapter = QdrantVectorBackendAdapter(client=FakeQdrantClient())
+            explicit_adapter = QdrantVectorBackendAdapter(client=FakeQdrantClient(), collection_name="explicit_chunks")
+
+        with patch.dict(os.environ, {}, clear=True):
+            fallback_adapter = QdrantVectorBackendAdapter(client=FakeQdrantClient())
+
+        self.assertEqual(env_adapter.collection_name, "env_chunks")
+        self.assertEqual(env_adapter.to_config().connection_settings["collection_env"], "QDRANT_COLLECTION")
+        self.assertEqual(env_adapter.to_config().connection_settings["collection_name"], "env_chunks")
+        self.assertEqual(explicit_adapter.collection_name, "explicit_chunks")
+        self.assertEqual(fallback_adapter.collection_name, "evidence_chunks")
+
+    def test_qdrant_vector_backend_adapter_omitted_client_autoloads_but_explicit_none_stays_unavailable(self) -> None:
+        fake_client = FakeQdrantClient()
+        with patch.object(qdrant_runtime, "_load_qdrant_client", return_value=fake_client) as load_client:
+            auto_adapter = QdrantVectorBackendAdapter()
+            unavailable_adapter = QdrantVectorBackendAdapter(client=None)
+
+        self.assertIs(auto_adapter.client, fake_client)
+        self.assertIsNone(unavailable_adapter.client)
+        self.assertEqual(load_client.call_count, 1)
+
     def test_qdrant_vector_backend_adapter_reports_unavailable_client_without_secret_leakage(self) -> None:
         adapter = QdrantVectorBackendAdapter(client=None, collection_name="evidence_test")
 
@@ -433,6 +461,30 @@ class BackendAdapterTests(unittest.TestCase):
         self.assertEqual(candidate["allowed_principals"], ("role:analyst",))
         self.assertNotIn("text", candidate)
         self.assertEqual(adapter.to_config().fallback_adapter, "in_memory_graph_index")
+
+    def test_neo4j_graph_backend_adapter_uses_database_env_default_and_explicit_override(self) -> None:
+        with patch.dict(os.environ, {"NEO4J_DATABASE": "env_graph"}):
+            env_adapter = Neo4jGraphBackendAdapter(client=FakeNeo4jClient())
+            explicit_adapter = Neo4jGraphBackendAdapter(client=FakeNeo4jClient(), database="explicit_graph")
+
+        with patch.dict(os.environ, {}, clear=True):
+            fallback_adapter = Neo4jGraphBackendAdapter(client=FakeNeo4jClient())
+
+        self.assertEqual(env_adapter.database, "env_graph")
+        self.assertEqual(env_adapter.to_config().connection_settings["database_env"], "NEO4J_DATABASE")
+        self.assertEqual(env_adapter.to_config().connection_settings["database"], "env_graph")
+        self.assertEqual(explicit_adapter.database, "explicit_graph")
+        self.assertEqual(fallback_adapter.database, "neo4j")
+
+    def test_neo4j_graph_backend_adapter_omitted_client_autoloads_but_explicit_none_stays_unavailable(self) -> None:
+        fake_client = FakeNeo4jClient()
+        with patch.object(neo4j_runtime, "_load_neo4j_client", return_value=fake_client) as load_client:
+            auto_adapter = Neo4jGraphBackendAdapter()
+            unavailable_adapter = Neo4jGraphBackendAdapter(client=None)
+
+        self.assertIs(auto_adapter.client, fake_client)
+        self.assertIsNone(unavailable_adapter.client)
+        self.assertEqual(load_client.call_count, 1)
 
     def test_neo4j_graph_backend_adapter_reports_unavailable_client_without_secret_leakage(self) -> None:
         adapter = Neo4jGraphBackendAdapter(client=None, database="evidence")

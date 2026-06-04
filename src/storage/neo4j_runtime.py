@@ -24,22 +24,27 @@ from .adapters import (
 from .vector_runtime import _operation_result, _vector_backend_error
 
 
+_CLIENT_UNSET = object()
+
+
 class Neo4jGraphBackendAdapter:
     """Executable graph adapter for Neo4j-compatible clients."""
 
     def __init__(
         self,
         *,
-        client: object | None = None,
-        database: str = "neo4j",
+        client: object | None = _CLIENT_UNSET,
+        database: str | None = None,
         adapter_name: str = "neo4j_graph_runtime",
         priority: int = 5,
         uri_env: str = "NEO4J_URI",
         user_env: str = "NEO4J_USER",
         password_env: str = "NEO4J_PASSWORD",
+        database_env: str = "NEO4J_DATABASE",
     ) -> None:
-        self.client = client if client is not None else _load_neo4j_client(uri_env, user_env, password_env)
-        self.database = database
+        resolved_database = database if database is not None else os.getenv(database_env) or "neo4j"
+        self.client = _load_neo4j_client(uri_env, user_env, password_env) if client is _CLIENT_UNSET else client
+        self.database = resolved_database
         self.config = BackendAdapterConfig(
             adapter_name=adapter_name,
             backend_type=BackendType.GRAPH,
@@ -57,7 +62,8 @@ class Neo4jGraphBackendAdapter:
                 "uri_env": uri_env,
                 "user_env": user_env,
                 "password_env": password_env,
-                "database": database,
+                "database_env": database_env,
+                "database": resolved_database,
             },
         )
 

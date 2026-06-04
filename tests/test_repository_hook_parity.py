@@ -87,6 +87,51 @@ class NoHookRepository:
     pass
 
 
+class AddLogOnlyRepository:
+    def __init__(self) -> None:
+        self.logs: list[LogEvent] = []
+
+    def add_log(self, log: LogEvent) -> LogEvent:
+        self.logs.append(log)
+        return log
+
+
+class SaveErrorOnlyRepository:
+    def __init__(self) -> None:
+        self.errors: list[ErrorEnvelope] = []
+
+    def save_error(self, error: ErrorEnvelope) -> ErrorEnvelope:
+        self.errors.append(error)
+        return error
+
+
+class FailingAddLogRepository:
+    def add_log(self, log: LogEvent) -> LogEvent:
+        raise RuntimeError("orchestration add_log failed")
+
+
+class FailingSaveErrorRepository:
+    def add_log(self, log: LogEvent) -> LogEvent:
+        return log
+
+    def save_error(self, error: ErrorEnvelope) -> ErrorEnvelope:
+        raise RuntimeError("orchestration save_error failed")
+
+
+def _planned_query_result() -> SimpleNamespace:
+    return SimpleNamespace(
+        logs=(),
+        errors=(),
+        executed_modes=(RetrievalMode.NO_RETRIEVAL,),
+        planning=SimpleNamespace(
+            request=SimpleNamespace(request_id="req_runtime"),
+            plan=SimpleNamespace(selected_modes=(RetrievalMode.NO_RETRIEVAL,)),
+        ),
+        validation=None,
+        synthesis=SimpleNamespace(answer=SimpleNamespace(answer_id="answer_runtime")),
+    )
+
+
 def test_ranking_local_hooks_noop_for_none_and_direct_call_when_present() -> None:
     log = _log()
     error = _error()
@@ -184,18 +229,7 @@ def test_planned_query_requires_repository_add_log_for_runtime_planning_logs() -
 
 def test_orchestration_runtime_records_start_and_complete_logs_when_hook_exists() -> None:
     repository = RecordingRepository()
-    planned_query = SimpleNamespace(
-        logs=(),
-        errors=(),
-        executed_modes=(RetrievalMode.NO_RETRIEVAL,),
-        planning=SimpleNamespace(
-            request=SimpleNamespace(request_id="req_runtime"),
-            plan=SimpleNamespace(selected_modes=(RetrievalMode.NO_RETRIEVAL,)),
-        ),
-        validation=None,
-        synthesis=SimpleNamespace(answer=SimpleNamespace(answer_id="answer_runtime")),
-    )
-    adapter = LangGraphCompatibleOrchestrationAdapter(graph_app=lambda _payload: planned_query)
+    adapter = LangGraphCompatibleOrchestrationAdapter(graph_app=lambda _payload: _planned_query_result())
 
     result = adapter.run_query("hello", repository, correlation_id="corr_runtime")
 
@@ -227,6 +261,37 @@ def test_orchestration_runtime_saves_error_when_app_fails_without_fallback() -> 
     assert [log.details["event_name"] for log in repository.logs] == ["orchestration_started"]
 
 
+def test_orchestration_runtime_success_missing_hooks_are_noop() -> None:
+    adapter = LangGraphCompatibleOrchestrationAdapter(graph_app=lambda _payload: _planned_query_result())
+
+    result = adapter.run_query("hello", NoHookRepository(), correlation_id="corr_runtime_success_no_hooks")
+
+    assert result.ok is True
+    assert result.output_reference == "answer_runtime"
+    assert result.details["fallback_used"] is False
+    assert [log.details["event_name"] for log in result.logs] == [
+        "orchestration_started",
+        "orchestration_completed",
+    ]
+
+
+def test_orchestration_runtime_add_log_failures_propagate() -> None:
+    adapter = LangGraphCompatibleOrchestrationAdapter(graph_app=lambda _payload: _planned_query_result())
+
+    with pytest.raises(RuntimeError, match="orchestration add_log failed"):
+        adapter.run_query("hello", FailingAddLogRepository(), correlation_id="corr_runtime_log_fail")
+
+
+def test_orchestration_runtime_save_error_failure_propagates_on_no_fallback_path() -> None:
+    def failing_app(_payload: dict[str, object]) -> object:
+        raise RuntimeError("graph app failed")
+
+    adapter = LangGraphCompatibleOrchestrationAdapter(graph_app=failing_app, allow_local_fallback=False)
+
+    with pytest.raises(RuntimeError, match="orchestration save_error failed"):
+        adapter.run_query("hello", FailingSaveErrorRepository(), correlation_id="corr_runtime_save_error_fail")
+
+
 def test_orchestration_runtime_missing_hooks_are_noop_on_unavailable_path() -> None:
     adapter = LangGraphCompatibleOrchestrationAdapter(graph_app=None, allow_local_fallback=False)
 
@@ -236,3 +301,30 @@ def test_orchestration_runtime_missing_hooks_are_noop_on_unavailable_path() -> N
     assert result.error is not None
     assert result.error.error_message == "langgraph app is unavailable"
     assert [log.details["event_name"] for log in result.logs] == ["orchestration_started"]
+
+
+def test_orchestration_runtime_partial_hooks_on_unavailable_path_keep_return_shape() -> None:
+    adapter = LangGraphCompatibleOrchestrationAdapter(graph_app=None, allow_local_fallback=False)
+    add_log_repository = AddLogOnlyRepository()
+    save_error_repository = SaveErrorOnlyRepository()
+
+    add_log_result = adapter.run_query(
+        "hello",
+        add_log_repository,
+        correlation_id="corr_runtime_unavailable_add_log_only",
+    )
+    save_error_result = adapter.run_query(
+        "hello",
+        save_error_repository,
+        correlation_id="corr_runtime_unavailable_save_error_only",
+    )
+
+    assert add_log_result.ok is False
+    assert save_error_result.ok is False
+    assert add_log_result.details == {"fallback_used": False}
+    assert save_error_result.details == {"fallback_used": False}
+    assert add_log_result.health.status is save_error_result.health.status
+    assert add_log_result.error.error_message == "langgraph app is unavailable"
+    assert save_error_result.error.error_message == "langgraph app is unavailable"
+    assert [log.details["event_name"] for log in add_log_repository.logs] == ["orchestration_started"]
+    assert save_error_repository.errors == []

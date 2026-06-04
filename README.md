@@ -226,10 +226,15 @@ PowerShell -ExecutionPolicy Bypass -File scripts\test_full_backend.ps1 -StrictSe
 Latest validated local results:
 
 - `pip check`: no broken requirements
-- `rag-center-health --strict-services`: Qdrant and Neo4j ready
+- `rag-center-health --env-file .env.example`: passed in lenient mode
 - `rag-center-smoke`: passed
-- `unittest`: 115 tests passed
-- `pytest`: 205 tests passed
+- focused P5.3 pytest: 30 tests passed
+- backend-adjacent phase pytest: 70 tests passed
+- `unittest`: 141 tests passed
+- `pytest`: 307 tests passed
+
+Strict service health was skipped in the latest 2026-06-04 validation because
+the Docker daemon/API pipe was unavailable on this host.
 
 ## Development Notes
 

@@ -23,7 +23,7 @@ from shared.policies import (
     create_error_telemetry,
     create_success_log_event,
 )
-from shared.repository_hooks import add_repository_log, save_repository_error
+from shared.repository_hooks import add_repository_log, call_repository_hook, save_repository_error
 from shared.records import (
     AnswerRecord,
     CitationStatus,
@@ -633,8 +633,7 @@ def _save_feedback(
     feedback: FeedbackRecord,
     trace_reference: FeedbackTraceReference,
 ) -> None:
-    if repository is not None and hasattr(repository, "save_feedback"):
-        repository.save_feedback(feedback, trace_reference)
+    call_repository_hook(repository, "save_feedback", feedback, trace_reference)
 
 
 def _add_log(repository: InMemoryFeedbackRepository | InMemoryStorageRepository | None, log: LogEvent) -> LogEvent:
@@ -642,8 +641,7 @@ def _add_log(repository: InMemoryFeedbackRepository | InMemoryStorageRepository 
 
 
 def _save_improvement_task(repository: InMemoryFeedbackRepository | object | None, task: ImprovementTaskRecord) -> None:
-    if repository is not None and hasattr(repository, "save_improvement_task"):
-        repository.save_improvement_task(task)
+    call_repository_hook(repository, "save_improvement_task", task)
 
 
 def _save_error(repository: InMemoryFeedbackRepository | InMemoryStorageRepository | None, error: ErrorEnvelope) -> None:

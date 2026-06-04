@@ -1,10 +1,10 @@
 # Project Generalize Handoff
 
-Date: 2026-06-02
+Date: 2026-06-04
 Workspace: `C:\Users\fredo\git_repos\MARACA\maraca_V02`
 Status: `in_progress`
 Finished: false
-Thread goal status: `blocked`
+Thread goal status: `active`
 
 ## Context Threshold
 
@@ -17,6 +17,13 @@ Thread goal status: `blocked`
 - Follow-up note: a resumed delegation turn briefly spawned three bounded agents before the existing over-threshold note was reread. Do not repeat that in the next chat; check the context rule first, then proceed only if under threshold.
 - 2026-06-02 production-optimization request: user asked to read existing files, start optimization for production, always update tracker/status files, use orchestration/worker/validation/testing agents, run full process tests if finished, and write a same-prompt takeover summary. Because this file still records the current chat as over threshold, no new agents or production code changes should be started here.
 - 2026-06-02 current turn refresh: status/tracker/handoff were re-read, live goal tooling showed no active budget object, and the persisted over-threshold project state was treated as controlling. Keep this chat in wrap-up mode; start agents only from a fresh chat whose context check is under 50%.
+- 2026-06-03 fresh production-optimization run: live goal/context tooling reported no active over-threshold budget object before agents were started. Preserve the historical over-threshold notes as prior-chat context, but continue future work under the normal rule: check context before starting agents.
+- 2026-06-04 OA1 loop: live context tooling exposed no active goal, no remaining-token ceiling, and no direct context-window percentage, so no explicit over-50% signal was available. Child-agent spawning was unavailable in the current toolset, so OA1 selected the next lane and wrote exact code-worker, validator, and tester/task-update briefs instead of forcing delegation.
+- 2026-06-04 main-thread wrap-up: after OA1 completed, live goal tooling reported `289495` tokens used with no remaining-token ceiling or direct context-window percentage. Treat this chat as over the safe threshold for additional agent starts; do not start new agents or edit production/test files here. Continue P5.3 from a fresh context.
+- 2026-06-04 automatic continuation: live goal tooling reported `422752` tokens used with no remaining-token ceiling or direct context-window percentage. This is still the same chat and remains wrap-up only; no agents or production/test edits should be started here.
+- 2026-06-04 repeated blocker audit: live goal tooling now reports `491480` tokens used with no remaining-token ceiling or direct context-window percentage. This is the third consecutive same-thread continuation of the same threshold blocker after OA1, so this thread goal is marked blocked for additional agent-based implementation. Continue from a fresh context using the prompt and P5.3 briefs below.
+- 2026-06-04 goal-tool blocked update: active thread goal was marked `blocked`; final goal-tool usage returned `520831` tokens used.
+- 2026-06-04 implementation continuation: user explicitly resumed the goal in this thread; live goal tooling reported an active goal with `9776` tokens used and no remaining-token ceiling. P5.3 was implemented and validated directly without spawning child agents.
 
 ## New Chat Prompt
 
@@ -25,7 +32,7 @@ Use this same controlling prompt to resume in a new chat:
 ```text
 /goal finish implementing project. use agents for all task like orchestration, worker, validator, tester
 
-Continue MARACA project_generalize from C:\Users\fredo\git_repos\MARACA\maraca_V02. Read project_generalize_handoff.md, project_generalize_tracker.md, project_generalize.md, generalize_project_summary.md, MARACA_v02_generalize_tracker.md, current_process_status.md, project_tests.md, and README.md. Do not assume prior chat context. Use orchestration/planning, worker, validator, and tester agents unless context usage exceeds 50%; if context exceeds 50%, stop starting agents and prepare a new handoff. Last validated lane is P1.4.2 narrow repository hook extraction. Current next task is lane selection after P1.4.2; do not begin feedback/evaluation domain save hooks or durable repository wrappers until separate persistence golden tests exist. Preserve all validated behavior and run focused, phase, unittest, and full pytest validation before marking a lane validated. Review git status before editing because the worktree has uncommitted implementation, test, tracker, and handoff changes.
+Continue MARACA project_generalize from C:\Users\fredo\git_repos\MARACA\maraca_V02. Read project_generalize_handoff.md, project_generalize_tracker.md, project_generalize.md, generalize_project_summary.md, MARACA_v02_generalize_tracker.md, current_process_status.md, project_tests.md, and README.md. Do not assume prior chat context. Use orchestration/planning, worker, validator, and tester agents unless context usage exceeds 50%; if context exceeds 50%, stop starting agents and prepare a new handoff. Last validated lane is P5.3 backend service/env defaults inventory/parity. Current next lane is selection of the next bounded production optimization task. Start any new lane with inventory/parity tests only; durable repository wrappers, social-source mapping, evidence-bundle export, and P1.5.2 broader telemetry builders remain separate/deferred unless explicitly re-scoped. Preserve all validated behavior and run focused, phase, unittest, full pytest, lenient health, smoke, and strict service health when services are running before marking a lane validated. Review git status before editing because the worktree has uncommitted implementation, test, tracker, and handoff changes.
 ```
 
 Original controlling delegation prompt to preserve:
@@ -43,7 +50,7 @@ read existing files and start optimization for production. always update tracker
 Use this prompt in a fresh chat if the next run should continue production optimization with agents:
 
 ```text
-Continue MARACA production optimization from C:\Users\fredo\git_repos\MARACA\maraca_V02. Read project_generalize_handoff.md, project_generalize_tracker.md, project_generalize.md, generalize_project_summary.md, MARACA_v02_generalize_tracker.md, current_process_status.md, project_tests.md, and README.md. Do not assume prior chat context. First check the current context/window usage; if it exceeds 50%, do not start a new agent and only update tracker/status/handoff files. If under threshold, use an orchestration agent to coordinate separate code-worker, validation, and testing/task-update agents. Always update project_generalize_tracker.md and current_process_status.md after each meaningful step. Last validated lane is P1.4.2 narrow repository hook extraction. Current next task is lane selection after P1.4.2; do not begin feedback/evaluation domain save hooks or durable repository wrappers until separate persistence golden tests exist. Preserve all validated behavior through P1.4.2. If a lane is finished, run focused tests, phase tests, unittest discovery, full pytest, and any relevant full-process/backend checks before marking it validated. Review git status before editing because the worktree has uncommitted implementation, test, tracker, and handoff changes.
+Continue MARACA production optimization from C:\Users\fredo\git_repos\MARACA\maraca_V02. Read project_generalize_handoff.md, project_generalize_tracker.md, project_generalize.md, generalize_project_summary.md, MARACA_v02_generalize_tracker.md, current_process_status.md, project_tests.md, and README.md. Do not assume prior chat context. First check the current context/window usage; if it exceeds 50%, do not start a new agent and only update tracker/status/handoff files. If under threshold, use an orchestration agent to select and coordinate the next bounded production optimization lane. Always update project_generalize_tracker.md and current_process_status.md after each meaningful step. Last validated lane is P5.3 backend service/env defaults inventory/parity, supported by evidence ids D-05 and B-01. Current next lane is open selection; durable repository wrappers, social-source mapping, evidence-bundle export, and P1.5.2 broader telemetry builders remain separate/deferred unless explicitly re-scoped. Preserve all validated behavior through P5.3. If a lane is finished, run focused tests, phase tests, unittest discovery, full pytest, lenient health, smoke, and strict service health when services are running before marking it validated. Review git status before editing because the worktree has uncommitted implementation, test, tracker, and handoff changes.
 ```
 
 ## Final Wrap-Up Summary
@@ -55,6 +62,13 @@ Continue MARACA production optimization from C:\Users\fredo\git_repos\MARACA\mar
 - Superseded by the later P1.4.2 validation entry below: the project remains unfinished overall, but P1.4.2 narrow repository hook extraction is now validated.
 - Latest production-optimization request is captured above for takeover; actual production optimization remains unstarted in this over-threshold chat.
 - Current turn refresh confirmed the same state: status is `in_progress`, `Finished: false`, and no full process testcheck was run because no lane was finished in this turn.
+- Superseded by the 2026-06-03 entries below: P1.4.2 broader repository save/orchestration hook extraction is now validated.
+- 2026-06-04 OA1 lane selection supersedes generic next-lane wording: the recommended next lane is `P5.3 backend service/env defaults inventory/parity`, supported by evidence ids `D-05` and `B-01`. Start with tests only; do not mark validated without validator signoff, focused tests, phase tests, unittest discovery, full pytest, lenient health, smoke, and strict service health when Qdrant/Neo4j are running.
+- 2026-06-04 final main-thread decision: latest goal usage counter is `289495` tokens, so no further agents were started after OA1. This chat is a handoff point, not a finalized project state.
+- 2026-06-04 automatic continuation decision: latest goal usage counter is `422752` tokens, so the same no-agent/no-production-edit rule remains active in this chat.
+- 2026-06-04 repeated blocker decision: latest goal usage counter is `491480` tokens. The same threshold condition has repeated across the required audit, so this thread is blocked for additional agent-based implementation. The project is still not finalized.
+- 2026-06-04 goal-tool result: thread goal status is now `blocked`; final usage returned `520831` tokens used. The project remains unfinished and should resume from a fresh context.
+- 2026-06-04 implementation continuation supersedes the P5.3 handoff blocker for this lane: P5.3 backend service/env defaults inventory/parity is implemented and validated. The project remains unfinished overall and should proceed with next-lane selection.
 
 ## Files To Read First
 
@@ -73,14 +87,29 @@ Continue MARACA production optimization from C:\Users\fredo\git_repos\MARACA\mar
 - `P1.4.1 optional repository log/error hook helper`: validated. Added `shared.repository_hooks` and wired feedback/evaluation `_add_log` and `_save_error` paths only.
 - `P1.5 telemetry/event golden-output inventory`: validated. Added `tests/test_telemetry_event_golden.py` to lock representative log/error payloads.
 - `P1.5.1 paired error telemetry helper`: validated. Added `shared.policies.create_error_telemetry` and wired ranking, validation, synthesis, feedback, and evaluation paired error-log paths.
+- `P1.4.2 narrow repository hook extraction`: validated. Wired ranking, synthesis, validation, planning, and orchestration runtime repository hooks through `shared.repository_hooks`.
+- `P1.4.2 broader repository save/orchestration hook extraction`: validated. Wired feedback/evaluation domain save helpers through `shared.repository_hooks.call_repository_hook` after broader parity tests.
+- `P5.3 backend service/env defaults inventory/parity`: validated. Locked Qdrant collection and Neo4j database defaults across health checks, adapter config output, explicit override precedence, omitted-client auto-loading, explicit `client=None` unavailability, `.env.example` compatibility, and redaction.
 
 ## Last Validation Evidence
 
-- Focused P1.5.1 pytest: 16 passed.
-- Phase-adjacent pytest: 53 passed.
-- Standard-library unittest discovery: 125 passed.
-- Full pytest: 252 passed.
-- Last validator signoff: Pauli, GPT-5.5 medium, passed with no blocking findings.
+- Focused P5.3 pytest: 30 passed.
+- Backend-adjacent phase pytest: 70 passed.
+- Standard-library unittest discovery: 141 passed.
+- Full pytest: 307 passed.
+- Lenient health and short keyword smoke passed.
+- Strict service health skipped because the Docker daemon/API pipe is unavailable.
+- Last validator signoff: P5.3 validation passed with no blocking findings.
+
+Prior P1.4.2 evidence:
+
+- Focused feedback/evaluation parity pytest: 36 passed.
+- Broader phase-adjacent pytest: 112 passed.
+- Standard-library unittest discovery: 139 passed.
+- Full pytest: 304 passed.
+- Lenient health and short keyword smoke passed.
+- Strict service health skipped because Qdrant and Neo4j containers are present but exited.
+- Last validator signoff: production extraction passed with no blocking findings.
 
 ## 2026-06-02 Test Takeover Update
 
@@ -99,9 +128,45 @@ Continue MARACA production optimization from C:\Users\fredo\git_repos\MARACA\mar
 
 ## Active Next Lane
 
-Task: `Next lane selection after P1.4.2`
+Task: next production optimization lane selection after validated P5.3.
 
-P1.4.2 narrow repository hook extraction is validated. Select the next production optimization lane. Do not begin feedback/evaluation domain save hooks or durable repository wrappers until separate persistence golden tests exist.
+P5.3 backend service/env defaults inventory/parity is validated. The next run should select the next bounded production optimization lane from the remaining backlog. Durable repository wrappers and P1.5.2 broader telemetry builders remain deferred until separate golden/parity coverage exists.
+
+Completed P5.3 summary:
+
+P1.4.2 broader repository save/orchestration hook extraction is validated. OA1 selected P5.3 as the next safest high-value production optimization lane because the current dirty worktree already contains bounded backend service/env-default material around Qdrant/Neo4j defaults, health checks, adapter config serialization, `.env.example`, and redacted connection settings. Durable repository wrappers and P1.5.2 broader telemetry builders remain deferred until separate golden/parity coverage exists.
+
+Evidence ids and risk rationale:
+
+- Evidence ids: `D-05`, `B-01`, summary findings ranks 6 and 7.
+- Risk: backend health and adapter defaults affect production readiness and CLI/manual workflows, but this slice is smaller than durable persistence wrappers or broad telemetry unification.
+- Boundary: inventory/parity tests first. Do not include social-source candidate mapping or evidence-bundle export unless a later lane deliberately scopes them.
+
+Acceptance criteria:
+
+- Qdrant collection and Neo4j database env defaults are explicit in health checks and adapter config output.
+- Explicit constructor overrides keep precedence over env-derived defaults.
+- Injected fake clients remain supported, including explicit `client=None` unavailable-client semantics.
+- `.env.example` defaults remain compatible with current backend setup.
+- Health/config output does not leak secrets.
+
+Exact code-worker brief:
+
+```text
+Work only on test-first inventory/parity for P5.3 backend service/env defaults. Review current dirty changes first and do not revert unrelated edits. Owned scope: tests/test_backend_health.py, tests/test_backend_adapters.py, and optionally tests/test_connection_settings.py if connection settings remain in scope. Lock Qdrant collection env default behavior, Neo4j database env default behavior, explicit override precedence, explicit client=None unavailable behavior, injected fake-client compatibility, env-file loading, default health-check rows, and redaction. Do not edit durable storage wrappers, P1.5.2 telemetry builders, social source candidate mapping, or evidence bundle export. Report changed files and focused test output.
+```
+
+Exact validator brief:
+
+```text
+Review the P5.3 backend service/env defaults scope and diff for behavior drift. Focus on env default precedence, injected-client semantics, explicit client=None unavailable paths, health status/details, adapter to_config shape, .env.example compatibility, and secret redaction. Treat durable wrappers, broad telemetry builders, social source candidate mapping, and evidence bundle export as out of scope. Do not edit files. Return blocking findings first with file/line references, then residual risks.
+```
+
+Exact tester/task-update brief:
+
+```text
+Run focused P5.3 validation with the documented sibling venv and repo-local TMP/TEMP settings: tests/test_backend_health.py, tests/test_backend_adapters.py, and tests/test_connection_settings.py if present; then backend-adjacent phase tests, unittest discovery, full pytest, rag-center-health --env-file .env.example, rag-center-smoke, and strict service health only if Qdrant/Neo4j containers are running. Update project_generalize_tracker.md and current_process_status.md with observed results only. Do not mark the lane validated unless implementation, validator signoff, focused tests, phase tests, unittest discovery, full pytest, and relevant backend/full-process checks are complete.
+```
 
 ## 2026-06-02 Fresh Delegation Progress
 
@@ -142,9 +207,36 @@ P1.4.2 narrow repository hook extraction is validated. Select the next productio
 - P1.4.2 narrow repository hook extraction is validated and finished for the completed scope.
 - Next work should select a new lane; do not start feedback/evaluation domain save or durable repository wrapper extraction until separate persistence golden tests exist.
 
+## 2026-06-03 P1.4.2 Broader Hook Extraction Validation
+
+- Fresh production-optimization run checked live goal/context tooling first; no active over-threshold budget object was reported, so orchestration, code-worker, validation, and testing/task-update agents were used.
+- Started with inventory/parity tests only, per the user boundary.
+- Added broader parity coverage in `tests/test_broader_repository_save_parity.py` for:
+  - feedback/evaluation missing domain-save hooks
+  - present-hook domain saves
+  - retryable failure telemetry for feedback/evaluation deferred save helpers
+  - durable JSONL/memory-only side effects for success and failure paths
+- Added orchestration failure/partial-hook parity in `tests/test_repository_hook_parity.py`.
+- Production extraction then wired feedback/evaluation deferred domain save helpers through `shared.repository_hooks.call_repository_hook`:
+  - `src/feedback/__init__.py`: `_save_feedback`, `_save_improvement_task`
+  - `src/evaluation/__init__.py`: `_save_trace`, `_save_evaluation_case`, `_save_evaluation_report`, `_save_observability_report`
+- Durable storage save/snapshot/JSON/JSONL wrappers were not edited.
+- Backend health/runtime adapter dirty changes, connection settings, social-source mapping, evidence-bundle export, and broad telemetry builders remained out of scope.
+- Focused feedback/evaluation parity pytest passed: `36 passed in 0.55s`.
+- Broader phase-adjacent pytest passed: `112 passed in 1.02s`.
+- Full pytest passed: `304 passed in 5.12s`.
+- Standard-library unittest discovery passed: `Ran 139 tests in 0.607s`, `OK`.
+- Lenient `rag-center-health --env-file .env.example` passed.
+- `rag-center-smoke` passed with one keyword candidate, keyword execution mode, one citation, and 20 logs.
+- Strict service health was skipped because Qdrant and Neo4j containers are present but exited with code `255`.
+- Validator passed with no blocking findings.
+- Residual non-blocking note: non-callable hook attributes such as `None` are treated as absent by `call_repository_hook`, consistent with the prior optional-hook contract; callable hook failures still propagate.
+- P1.4.2 broader repository save/orchestration hook extraction is validated and finished for the completed scope.
+- Next work should select a new production optimization lane. Durable wrappers and broad telemetry builders remain deferred until separate golden coverage exists.
+
 Completed P1.4.2 inventory:
 
-- feedback/evaluation domain save hooks remain deferred
+- feedback/evaluation domain save hooks validated in the 2026-06-03 broader extraction
 - validation repository hooks
 - ranking repository hooks
 - synthesis repository hooks
@@ -163,10 +255,10 @@ Code search on 2026-06-02 found these surfaces before extraction:
 - `src/validation/__init__.py` now routes local `_add_log`, `_save_error`, `_save_validation`, and `_save_claim` helpers through permissive `shared.repository_hooks`.
 - `src/planning/__init__.py` now routes required log calls and optional claim save through `shared.repository_hooks`.
 - `src/planning/orchestration_runtime.py` now routes adapter log/error hooks through permissive `shared.repository_hooks`.
-- `src/feedback/__init__.py` and `src/evaluation/__init__.py` already use the shared log/error helpers for P1.4.1, but their domain save helpers remain separate.
+- `src/feedback/__init__.py` and `src/evaluation/__init__.py` use shared log/error helpers from P1.4.1 and now route deferred domain save helpers through `shared.repository_hooks.call_repository_hook` from the 2026-06-03 broader extraction.
 - `src/storage/__init__.py` and `src/storage/durable.py` contain durable save/commit/recovery behavior and should be treated as persistence compatibility evidence, not as a first extraction target.
 
-This inventory was converted into focused parity tests, followed by narrow production extraction and validation.
+This inventory was converted into focused parity tests, followed by narrow and broader production extraction and validation.
 
 ## P1.4.2 Parity-Test Checklist
 

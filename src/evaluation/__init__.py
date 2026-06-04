@@ -24,7 +24,7 @@ from shared.policies import (
     create_error_telemetry,
     create_success_log_event,
 )
-from shared.repository_hooks import add_repository_log, save_repository_error
+from shared.repository_hooks import add_repository_log, call_repository_hook, save_repository_error
 from shared.records import (
     AnswerRecord,
     EvidenceCandidate,
@@ -643,32 +643,28 @@ def _unique(values: Iterable[str | None]) -> tuple[str, ...]:
 
 
 def _save_trace(repository: InMemoryEvaluationRepository | InMemoryStorageRepository | None, trace: EvaluationTraceRecord) -> None:
-    if repository is not None and hasattr(repository, "save_trace"):
-        repository.save_trace(trace)
+    call_repository_hook(repository, "save_trace", trace)
 
 
 def _save_evaluation_case(
     repository: InMemoryEvaluationRepository | InMemoryStorageRepository | None,
     case: EvaluationDatasetCase,
 ) -> None:
-    if repository is not None and hasattr(repository, "save_evaluation_case"):
-        repository.save_evaluation_case(case)
+    call_repository_hook(repository, "save_evaluation_case", case)
 
 
 def _save_evaluation_report(
     repository: InMemoryEvaluationRepository | InMemoryStorageRepository | None,
     report: EvaluationBatchReport,
 ) -> None:
-    if repository is not None and hasattr(repository, "save_evaluation_report"):
-        repository.save_evaluation_report(report)
+    call_repository_hook(repository, "save_evaluation_report", report)
 
 
 def _save_observability_report(
     repository: InMemoryEvaluationRepository | InMemoryStorageRepository | None,
     report: ObservabilityReport,
 ) -> None:
-    if repository is not None and hasattr(repository, "save_observability_report"):
-        repository.save_observability_report(report)
+    call_repository_hook(repository, "save_observability_report", report)
 
 
 def _add_log(repository: InMemoryEvaluationRepository | InMemoryStorageRepository | None, log: LogEvent) -> LogEvent:

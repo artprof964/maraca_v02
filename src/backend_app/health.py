@@ -122,18 +122,27 @@ def _docker_check() -> CheckResult:
 
 
 def _service_env_checks() -> tuple[CheckResult, ...]:
-    expected = {
+    required = {
         "QDRANT_URL": os.getenv("QDRANT_URL"),
         "NEO4J_URI": os.getenv("NEO4J_URI"),
         "NEO4J_USER": os.getenv("NEO4J_USER"),
         "NEO4J_PASSWORD": os.getenv("NEO4J_PASSWORD"),
     }
     checks = []
-    for key, value in expected.items():
+    for key, value in required.items():
         if value:
             checks.append(CheckResult(key, True, "set", _redact(key, value)))
         else:
             checks.append(CheckResult(key, False, "unset", f"Set {key} or copy .env.example to .env before service checks."))
+    defaulted = {
+        "QDRANT_COLLECTION": (os.getenv("QDRANT_COLLECTION"), "evidence_chunks"),
+        "NEO4J_DATABASE": (os.getenv("NEO4J_DATABASE"), "neo4j"),
+    }
+    for key, (value, default) in defaulted.items():
+        if value:
+            checks.append(CheckResult(key, True, "set", value))
+        else:
+            checks.append(CheckResult(key, True, "default", default))
     return tuple(checks)
 
 

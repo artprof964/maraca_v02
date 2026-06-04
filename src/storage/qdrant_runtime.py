@@ -25,22 +25,27 @@ from .adapters import (
 from .vector_runtime import _operation_result, _vector_backend_error
 
 
+_CLIENT_UNSET = object()
+
+
 class QdrantVectorBackendAdapter:
     """Executable vector adapter for Qdrant-compatible clients."""
 
     def __init__(
         self,
         *,
-        client: object | None = None,
-        collection_name: str = "evidence_chunks",
+        client: object | None = _CLIENT_UNSET,
+        collection_name: str | None = None,
         adapter_name: str = "qdrant_vector_runtime",
         priority: int = 5,
         url_env: str = "QDRANT_URL",
         api_key_env: str = "QDRANT_API_KEY",
+        collection_env: str = "QDRANT_COLLECTION",
         vector_size: int = VECTOR_DIMENSIONS,
     ) -> None:
-        self.client = client if client is not None else _load_qdrant_client(url_env, api_key_env)
-        self.collection_name = collection_name
+        resolved_collection_name = collection_name if collection_name is not None else os.getenv(collection_env) or "evidence_chunks"
+        self.client = _load_qdrant_client(url_env, api_key_env) if client is _CLIENT_UNSET else client
+        self.collection_name = resolved_collection_name
         self.vector_size = vector_size
         self.config = BackendAdapterConfig(
             adapter_name=adapter_name,
@@ -58,7 +63,8 @@ class QdrantVectorBackendAdapter:
             connection_settings={
                 "url_env": url_env,
                 "api_key_env": api_key_env,
-                "collection_name": collection_name,
+                "collection_env": collection_env,
+                "collection_name": resolved_collection_name,
                 "vector_size": vector_size,
             },
         )

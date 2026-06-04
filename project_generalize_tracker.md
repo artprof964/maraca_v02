@@ -9,17 +9,249 @@ Finished flag rule: `Finished: true` only when implementation, tests, validator 
 - Program: `project_generalize`
 - Status: `in_progress`
 - Finished: false
-- Last updated: 2026-06-02
+- Last updated: 2026-06-04
 - Evidence baseline: `generalize_project.json`, `generalize_project_summary.md`, `MARACA_v02_generalize_tracker.md`
-- Current implementation lane: `next lane selection after P1.4.2`
-- Last validated lane: `P1.4.2 narrow repository hook extraction`
-- Last regression result: 2026-06-02 P1.4.2 narrow extraction gates passed focused pytest 59 passed, expanded phase-adjacent pytest 147 passed, unittest discovery 129 passed, and full pytest 268 passed
-- Current validation spot-check: narrow P1.4.2 extraction passes focused pytest (`59 passed`), expanded phase-adjacent pytest (`147 passed`), unittest discovery (`129 passed`), and full pytest (`268 passed`) with tracker-documented repo-local temp settings; strict backend health previously passed, smoke previously passed, and direct import/export probe previously passed; bare full pytest can still fail on host temp access, and `scripts\test_full_backend.ps1 -StrictServices` fails without a local `.venv` because it hardcodes `.\.venv\Scripts\python.exe`.
-- Next worker objective: select the next high-value production optimization lane; feedback/evaluation domain save helpers and durable repository wrappers remain deferred until separate persistence golden tests exist
-- Context handoff status: current chat exceeded the 50% context threshold; do not start additional agents in this chat. Continue in a new chat from `project_generalize_handoff.md`.
-- Current chat blocked status: repeated over-threshold goal continuations have now satisfied the blocked audit for this chat at `1082685` tokens used; further agent-based implementation should happen in a new chat unless the user changes the context rule.
-- Superseded wrap-up note: an earlier resumed delegation turn briefly spawned bounded agents before rereading the over-threshold handoff note; later fresh under-threshold continuations completed and validated P1.4.2 narrow repository hook extraction.
-- Latest user request: update all files and references after P1.4.2 validation. Active next step is lane selection after P1.4.2.
+- Current implementation lane: `P5.3 backend service/env defaults inventory/parity`
+- Last validated lane: `P5.3 backend service/env defaults inventory/parity`
+- Last regression result: 2026-06-04 P5.3 gates passed focused P5.3 pytest 30 passed, backend-adjacent phase pytest 70 passed, full pytest 307 passed, unittest discovery 141 passed, lenient health, and smoke
+- Current validation spot-check: P5.3 passes with repo-local temp settings; strict service health was skipped because Docker Compose is installed but the Docker daemon/API pipe is unavailable; durable storage save/snapshot/JSON/JSONL wrappers remain untouched and deferred.
+- Next worker objective: select the next production optimization lane after validated P5.3; durable repository wrappers and P1.5.2 broader telemetry builders remain deferred until separate golden coverage exists.
+- Context handoff status: historical prior-chat status exceeded the 50% context threshold; this 2026-06-04 OA1 loop checked live goal tooling first and no direct context-window percentage was exposed. After OA1 completed, the main thread goal usage counter reported `289495` tokens used with no remaining-token ceiling, then automatic continuations reported `422752` and `491480` tokens used. The active thread goal was marked `blocked`, and the goal tool returned final usage `520831` tokens used.
+- Current chat blocked status: superseded by the 2026-06-04 implementation turn; live goal tooling reported an active under-threshold goal, so P5.3 was finished directly in this thread without spawning child agents.
+- Superseded wrap-up note: an earlier resumed delegation turn briefly spawned bounded agents before rereading the over-threshold handoff note; later fresh under-threshold continuations completed and validated P1.4.2 narrow and broader repository hook extraction.
+- Latest user request: read the current process/status/handoff/tracker files and finish implementation. Answer: the project is not finalized overall, but P5.3 is now implemented and validated; active work returns to next-lane selection.
+
+## 2026-06-04 P5.3 Backend Service/Env Defaults Validation
+
+- Owner action: reread the required status/handoff/tracker files and reviewed `git status --short` before editing.
+- Context decision: live goal tooling reported an active goal with `9776` tokens used and no remaining-token ceiling, so this implementation turn proceeded under the user threshold rule.
+- Implementation result: finished the selected `P5.3 backend service/env defaults inventory/parity` lane.
+- Production behavior covered: Qdrant collection env defaults, Neo4j database env defaults, explicit constructor override precedence, injected fake-client compatibility, explicit `client=None` unavailable semantics, `.env.example` backend-default compatibility, and secret-safe health/config output.
+- Test additions: locked missing-env health default rows in `tests/test_backend_health.py` and omitted-client auto-loading versus explicit `client=None` unavailability in `tests/test_backend_adapters.py`.
+- Validator review: no blocking P5.3 findings for env precedence, injected-client semantics, explicit unavailable paths, health rows, adapter config shape, `.env.example` compatibility, or redaction.
+- Focused P5.3 pytest passed: `30 passed in 2.71s`.
+- Backend-adjacent phase pytest passed: `70 passed in 3.14s`.
+- Standard-library unittest discovery passed: `Ran 141 tests in 0.475s`, `OK`.
+- Full pytest passed: `307 passed in 4.01s`.
+- Lenient `rag-center-health --env-file .env.example` passed.
+- `rag-center-smoke` passed with one keyword candidate, keyword execution mode, one citation, 20 logs, and a cited answer.
+- Strict service health skipped: Docker Compose is installed, but the Docker daemon/API pipe is unavailable on this host.
+- Status: `validated`.
+- Finished: true for P5.3; project remains unfinished overall.
+
+## 2026-06-04 Current Run Orientation
+
+- Owner action: checked live goal/context signal, reread the required handoff/tracker/plan/summary/status/test/README files, and reviewed `git status --short --branch` before editing.
+- Context decision: the live goal meter exposed `197528` tokens used but no active budget object, remaining-token ceiling, or direct context-window percentage. Because the current live context is a compacted handoff rather than the prior full chat, continue with bounded orchestration while preserving the user rule to stop spawning agents if an explicit over-50% context signal appears.
+- Worktree state: dirty source/test/docs/tracker changes remain present; do not revert unrelated edits.
+- Current lane: select the next high-value production optimization lane after validated P1.4.2 broader-hook extraction.
+- Boundary: do not extract durable repository wrappers or P1.5.2 broader telemetry builders until separate golden/parity coverage locks strict/permissive behavior, telemetry payloads, return shapes, failure propagation, and durable persistence side effects.
+- Agent action: prior tracker text referenced an OA1 orchestration agent named `Euler`; in this current OA1 loop, child-agent/thread spawning was not available, so no new child agents were started and exact briefs were written instead.
+- Baseline test action: ran focused dirty-change pytest for connection settings, social-source candidates, evidence-bundle export, backend health/adapters, broader repository save parity, and repository hook parity.
+- Baseline test result: `63 passed in 4.91s`; this is a current safety baseline only, not a validation of a newly selected lane.
+- Status: `in_progress`.
+- Finished: false.
+
+## 2026-06-04 OA1 Lane Selection
+
+- Owner action: OA1 reread the required project handoff/tracker/plan/summary/status/test/README files, checked the available context signal, reviewed `git status --short`, sampled high-level diffs, and searched for child-thread tools.
+- Context decision: no explicit over-50% current-context signal was exposed; child-agent spawning is unavailable in the current toolset because no `create_thread` or `send_message_to_thread` tool was found.
+- Worktree state: dirty implementation/test/docs changes remain present in backend health/runtime adapter env defaults, connection settings, social source candidates, evidence bundle export, P1.4.2 hook extraction, and tracker/handoff files. Do not revert unrelated edits.
+- Selected next lane: `P5.3 backend service/env defaults inventory/parity`, with `P6.1` adapter-template evidence as a secondary support. Evidence ids: `D-05`, `B-01`, summary findings ranks 6 and 7.
+- Risk rationale: this lane is smaller and safer than durable repository wrappers or broad telemetry builders, targets production setup correctness, and has current dirty material around Qdrant/Neo4j default env handling, redacted connection settings, `.env.example`, backend health checks, and adapter config serialization.
+- Scope boundary: start with inventory/parity tests only. Do not generalize durable repository save/snapshot/JSON/JSONL wrappers, do not extract P1.5.2 telemetry builders, and do not fold in social-source mapping or evidence-bundle export unless deliberately promoted as separate lanes.
+- Acceptance criteria:
+  - Qdrant collection and Neo4j database env defaults are explicit, redacted where needed, and reflected consistently in health checks and adapter `to_config()` output.
+  - Explicit constructor overrides keep precedence over env defaults.
+  - Injected fake clients remain supported, including an explicit `client=None` unavailable path distinct from omitted client auto-loading.
+  - `.env.example` documents defaults without changing Qdrant URL, Neo4j URI/user/password, storage root, or model profile behavior.
+  - No secrets are leaked in health or config serialization.
+- Test-first requirements:
+  - focused backend health env-file/default tests in `tests/test_backend_health.py`
+  - focused Qdrant/Neo4j adapter env-default and unavailable-client tests in `tests/test_backend_adapters.py`
+  - focused connection settings/redaction tests in `tests/test_connection_settings.py` if the LLM connection registry is included
+  - a high-level inventory note separating this lane from `tests/test_social_source_candidates.py` and `tests/test_evidence_bundle_export.py`
+- Validation gates before any validated marking: focused P5.3 tests, backend-adjacent phase tests, unittest discovery, full pytest, lenient `rag-center-health --env-file .env.example`, `rag-center-smoke`, and strict service health only if Qdrant/Neo4j containers are running.
+- Code-worker brief: verify and, if needed, add only inventory/parity tests for backend service/env defaults in `tests/test_backend_health.py`, `tests/test_backend_adapters.py`, and optionally `tests/test_connection_settings.py`; do not edit durable persistence, telemetry builders, social source candidate mapping, or evidence bundle export; do not revert unrelated dirty files.
+- Validator brief: review the proposed P5.3 scope and current diff for behavior drift in env default precedence, injected-client semantics, secret redaction, health check statuses, and adapter config shape; report blocking findings with file/line references and do not edit files.
+- Tester/task-update brief: run the focused P5.3 tests, backend-adjacent phase tests, unittest discovery, full pytest, lenient health, and smoke using the documented sibling venv and repo-local temp settings; update tracker/status only with observed results and do not mark the lane validated unless all gates and validator signoff complete.
+- Status: `ready` for test-first inventory/parity review, not validated.
+- Finished: false.
+
+## 2026-06-04 Main Thread Wrap-Up
+
+- Owner action: integrated OA1's lane-selection result and checked live goal/context signal again before starting any worker/validator/tester agents.
+- Context decision: latest main-thread goal usage counter reported `289495` tokens used, with no remaining-token ceiling or direct context-window percentage. To honor the user's 50% rule conservatively, no additional agents were started after OA1 and no production-code or test-file edits were made after this decision.
+- Completed this turn: confirmed the project is not finalized overall; selected `P5.3 backend service/env defaults inventory/parity` as the next lane; recorded exact code-worker, validator, and tester/task-update briefs; ran one focused dirty-change baseline before the wrap-up decision.
+- Baseline retained: focused dirty-change pytest passed with `63 passed in 4.91s`.
+- Not completed: P5.3 implementation, validator signoff, focused/phase/full gates, lenient health, smoke, and strict service health.
+- Next action: start a fresh chat from `project_generalize_handoff.md`, check context usage first, and if under threshold launch the P5.3 code-worker, validator, and tester/task-update agents from the recorded briefs.
+- Status: `ready` for P5.3 test-first inventory/parity in a fresh context.
+- Finished: false.
+
+## 2026-06-04 Automatic Continuation Wrap-Up
+
+- Owner action: checked live goal/context signal again and reread `git status --short --branch`, `project_generalize_handoff.md`, `project_generalize_tracker.md`, and `current_process_status.md`.
+- Context decision: live goal usage now reports `422752` tokens used, with no remaining-token ceiling or direct context-window percentage. This is the same-thread continuation of the prior wrap-up condition, so no new agents were started and no production/test files were edited.
+- Worktree state: dirty implementation, test, tracker, and handoff changes remain present; do not revert unrelated edits.
+- Superseded note: at this point P5.3 was still pending; the later 2026-06-04 implementation continuation finished and validated it.
+- Next action remains unchanged: continue from a fresh context, check context usage first, and if under threshold run the recorded P5.3 worker/validator/tester loop.
+- Status: `ready` for P5.3 test-first inventory/parity in a fresh context.
+- Finished: false.
+
+## 2026-06-04 Repeated Threshold Blocker
+
+- Owner action: checked live goal/context signal again, reviewed `git status --short --branch`, and reread the top of the handoff/tracker/status files.
+- Context decision: live goal usage now reports `491480` tokens used, with no remaining-token ceiling or direct context-window percentage. This is the third consecutive same-thread continuation of the same threshold condition after OA1, so the active thread goal is blocked for additional agent-based implementation.
+- Worktree state: dirty implementation, test, tracker, and handoff changes remain present; do not revert unrelated edits.
+- Superseded note: at this point the project was validated through P1.4.2 and P5.3 was still pending; the later 2026-06-04 implementation continuation finished and validated P5.3.
+- Fresh-context next action: check context usage first, then if under threshold run the recorded P5.3 worker, validator, and tester/task-update loop.
+- Goal-tool result: active thread goal marked `blocked`; final usage returned `520831` tokens used.
+- Status: `ready` for P5.3 test-first inventory/parity in a fresh context.
+- Finished: false.
+
+## 2026-06-03 Production Optimization Restart
+
+- Owner action: checked live goal/context usage first, re-read `project_generalize_handoff.md`, `project_generalize_tracker.md`, `project_generalize.md`, `generalize_project_summary.md`, `MARACA_v02_generalize_tracker.md`, `current_process_status.md`, `project_tests.md`, `README.md`, and reviewed `git status --short --branch` before editing.
+- Context decision: live goal tooling reported no active goal budget object and no over-threshold usage in this fresh run, so the under-threshold branch is active while preserving the 50% check before future agent starts.
+- Worktree state: dirty source/test changes are present in backend health, Qdrant/Neo4j runtime, connection settings, evidence bundle export, social source candidates, and related tests; do not revert unrelated edits.
+- Current lane: P1.4.2 broader repository save and orchestration hooks inventory/parity-test planning only.
+- Boundary: production optimization must start with inventory/parity tests only; do not extract production hooks until strict/permissive behavior, telemetry payloads, return shapes, failure propagation, and durable persistence side effects are locked.
+- Status: `in_progress`.
+- Finished: false.
+
+## 2026-06-03 Broader Hook Inventory Started
+
+- Owner action: searched repository save/log/error/orchestration hook surfaces across planning, orchestration runtime, feedback, evaluation, storage, ranking, validation, synthesis, and existing tests.
+- Current evidence: narrow P1.4.2 log/error/save hook behavior is already covered by `tests/test_repository_hook_parity.py`, `tests/test_ranking.py`, `tests/test_synthesis.py`, `tests/test_validation.py`, and `tests/test_planner_orchestration.py`.
+- Broader remaining surface: feedback/evaluation domain save helpers (`save_feedback`, `save_improvement_task`, `save_trace`, `save_evaluation_case`, `save_evaluation_report`, `save_observability_report`) and durable storage snapshot/JSONL side effects in `src/storage/__init__.py` and `src/storage/durable.py`.
+- Current decision: keep this lane test-only until those broader save helpers and durable side effects have explicit parity/golden coverage.
+- Agents: orchestration, code-worker, validation, and testing/task-update agents were started under the under-threshold branch.
+- Status: `in_progress`.
+- Finished: false.
+
+## 2026-06-03 Orchestration Brief Received
+
+- Orchestration result: recommended P1.4.2 broader repository save and orchestration hooks as a test-only inventory/parity lane.
+- Accepted test scope: feedback domain saves, evaluation domain saves, durable JSON snapshot/JSONL append/reload/rollback side effects, and preservation of already-locked planning/orchestration hook behavior.
+- Explicit out-of-scope items: production hook extraction, durable wrapper extraction, backend health/runtime adapter dirty changes, and broad telemetry-builder extraction.
+- Acceptance criteria: assert absent repository, missing hook, present hook, and failing hook behavior; preserve telemetry event names, operation names, fallback actions, retryability, `policy_mutation`, details separation, output references, return shapes, and durable persistence shapes.
+- Status: `in_progress`.
+- Finished: false.
+
+## 2026-06-03 Validation Findings For Broader Hook Inventory
+
+- Validator result: test-first direction is correct and production extraction remains blocked.
+- Blocking gaps before extraction:
+  - feedback/evaluation domain save helpers need absent repository, missing hook, present hook, and failing hook parity for every deferred helper
+  - durable storage needs explicit JSON snapshot contents, JSONL append ordering/counts, reload equivalence, and rollback side-effect parity before wrapper extraction
+  - orchestration runtime needs additional failure-propagation parity for `add_log` failures, `save_error` failures, no-hook successful app runs, and partial hook repositories on unavailable paths
+- Validator note: current dirty backend health/runtime adapter, connection settings, social-source mapping, and evidence-bundle export changes are unrelated to this P1.4.2 broader hook lane unless deliberately re-scoped.
+- Status: `in_progress`.
+- Finished: false.
+
+## 2026-06-03 Testing Baseline
+
+- Testing agent action: ran focused dirty-change, repository/orchestration hook parity, backend-adjacent durable/support, full pytest, unittest discovery, lenient health, and smoke checks without editing code or tracker files.
+- Environment: sibling venv `C:\Users\fredo\git_repos\MARACA\MARACA-1\.venv\Scripts\python.exe`, `PYTHONDONTWRITEBYTECODE=1`, `PYTHONPATH=src`, and repo-local `.tmp\pytest` for `TMP`/`TEMP`.
+- Focused dirty-change pytest passed: `40 passed in 6.30s`.
+- P1.4.2 repository/orchestration hook parity pytest passed: `70 passed in 0.51s`.
+- Backend-adjacent durable/support pytest passed: `39 passed in 4.75s`.
+- Full pytest passed: `291 passed in 4.77s`.
+- Standard-library unittest discovery passed: `Ran 139 tests in 0.469s`, `OK`.
+- Lenient `rag-center-health --env-file .env.example` passed optional imports, Docker/env checks, and LangGraph runtime; Qdrant/Neo4j service probes were not checked in non-strict mode.
+- `rag-center-smoke` passed with one keyword candidate, keyword execution mode, one citation, and 20 logs.
+- Strict service health was not run because `rag-center-qdrant` and `rag-center-neo4j` were present but exited with code `255`.
+- Status: `in_progress`; this is a baseline, not validation of the broader extraction lane.
+- Finished: false.
+
+## 2026-06-03 Broader Parity Tests Added
+
+- Code-worker result: added test-only broader P1.4.2 parity coverage in `tests/test_broader_repository_save_parity.py`.
+- Locked worker coverage: permissive missing feedback/evaluation domain save hooks, existing log/error hook failure propagation, feedback write-failure return shape and telemetry details, and durable side effects where feedback/evaluation domain-save records remain memory-only while log JSONL persists.
+- Main-thread repair: added orchestration runtime parity assertions in `tests/test_repository_hook_parity.py` for successful no-hook app runs, `add_log` failure propagation, `save_error` failure propagation on no-fallback error paths, and partial-hook unavailable return shapes.
+- Focused parity pytest passed: `19 passed in 0.24s` for `tests\test_repository_hook_parity.py tests\test_broader_repository_save_parity.py`.
+- Expanded adjacent pytest passed: `65 passed in 0.68s` for broader repository save parity, repository hooks, feedback/evaluation, durable storage, planner orchestration, and related metrics/improvement tests.
+- Full pytest passed after new parity tests: `300 passed in 4.95s`.
+- Standard-library unittest discovery passed after new parity tests: `Ran 139 tests in 0.620s`, `OK`.
+- No production hook extraction was started.
+- Status: `implemented` for this test-only parity slice, pending post-patch validator review before validation.
+- Finished: false.
+
+## 2026-06-03 Post-Patch Validation Result
+
+- Validator result: orchestration parity gaps are addressed for inventory/parity purposes.
+- Remaining blockers before production extraction:
+  - explicit failure-propagation/present-hook parity is still needed for `save_improvement_task`, `save_evaluation_case`, `save_evaluation_report`, and `save_observability_report`
+  - durable side-effect parity still needs broader coverage for improvement tasks, evaluation batch cases/reports, observability reports, error JSONL paths, and no-extra-write/rollback-adjacent behavior around those domain-save flows
+- Validation call: current test-only slice is a solid parity improvement but does not unlock production extraction of feedback/evaluation domain-save hooks or durable wrappers.
+- Status: `in_progress` for additional test-only parity coverage.
+- Finished: false.
+
+## 2026-06-03 Broader Domain Save Parity Expanded
+
+- Main-thread repair: extended `tests/test_broader_repository_save_parity.py` to cover present-hook saves, missing-hook no-ops, failing domain-save telemetry, and durable JSONL side effects across feedback/evaluation deferred save helpers.
+- Additional locked surfaces:
+  - `save_improvement_task`, `save_evaluation_case`, `save_evaluation_report`, and `save_observability_report` present-hook behavior
+  - retryable telemetry return shapes for improvement task, evaluation case/report, and observability report write failures
+  - durable success side effects where improvement tasks, evaluation cases/reports, and observability reports remain memory-only while logs persist to `logs.jsonl`
+  - durable failure side effects where errors persist to `errors.jsonl` and domain records remain absent after reload
+- Focused broader save parity pytest passed: `9 passed in 0.24s`.
+- Expanded adjacent pytest passed: `69 passed in 0.61s`.
+- Full pytest passed after expanded parity tests: `304 passed in 4.00s`.
+- Standard-library unittest discovery passed after expanded parity tests: `Ran 139 tests in 0.359s`, `OK`.
+- No production hook extraction was started.
+- Status: `implemented` for the expanded test-only parity slice, pending validator review.
+- Finished: false.
+
+## 2026-06-03 Expanded Parity Slice Validated
+
+- Validator result: no blocking findings for the expanded test-only P1.4.2 broader repository save/orchestration-hook inventory.
+- Validated locked scope: feedback/evaluation domain-save helper behavior, orchestration hook behavior, retryable telemetry return shapes, and durable JSONL/memory-only side effects for the covered domain-save flows.
+- Residual non-blocking precision gap: a dedicated durable `save_evaluation_case` failure path is not directly exercised, but public `evaluate_batch` failure return shape and durable `errors.jsonl` behavior are otherwise pinned.
+- Validation gates completed for the test-only slice: focused broader parity `9 passed`, expanded adjacent `69 passed`, full pytest `304 passed`, and unittest discovery `139 passed`.
+- Production extraction boundary: a carefully scoped production extraction may begin for feedback/evaluation domain save helpers through the existing `shared.repository_hooks` helper; durable save/snapshot/JSON/JSONL wrapper extraction remains out of scope.
+- Status: `validated` for the test-only inventory/parity slice; `in_progress` for the narrow production extraction attempt.
+- Finished: false for the broader P1.4.2 lane until production extraction, validator review, and full gates pass.
+
+## 2026-06-03 Narrow Broader-Hook Production Extraction Started
+
+- Owner action: beginning production extraction only after validated parity/golden coverage.
+- Planned production scope: route feedback/evaluation deferred domain save helpers through `shared.repository_hooks.call_repository_hook` while preserving local private helper names and permissive missing-hook behavior.
+- Explicit out-of-scope items: durable storage save/snapshot/JSON/JSONL wrappers, backend health/runtime adapter dirty changes, connection settings, social-source mapping, evidence-bundle export, and broad telemetry-builder extraction.
+- Status: `in_progress`.
+- Finished: false.
+
+## 2026-06-03 Narrow Broader-Hook Production Extraction Implemented
+
+- Owner action: wired feedback/evaluation deferred domain save helpers through `shared.repository_hooks.call_repository_hook`.
+- Production files touched: `src/feedback/__init__.py` and `src/evaluation/__init__.py`.
+- Preserved behavior:
+  - missing repository and missing domain-save hooks remain permissive no-ops
+  - existing domain-save, log, and error hook failures still propagate through the same public flow behavior
+  - telemetry payloads, return shapes, and durable JSONL/memory-only side effects remain locked by parity tests
+- Durable storage save/snapshot/JSON/JSONL wrappers were not touched.
+- Focused feedback/evaluation parity pytest passed: `36 passed in 0.55s`.
+- Broader phase-adjacent pytest passed: `112 passed in 1.02s`.
+- Full pytest passed: `304 passed in 5.12s`.
+- Standard-library unittest discovery passed: `Ran 139 tests in 0.607s`, `OK`.
+- Lenient `rag-center-health --env-file .env.example` passed optional imports, Docker/env checks, Qdrant/Neo4j env defaults, and LangGraph runtime; Qdrant/Neo4j service probes were not checked in non-strict mode.
+- `rag-center-smoke` passed with one keyword candidate, keyword execution mode, one citation, and 20 logs.
+- Strict service health was not run because `docker compose ps --all` shows `rag-center-qdrant` and `rag-center-neo4j` are present but exited with code `255`.
+- Status: `implemented`, pending validator review.
+- Finished: false.
+
+## 2026-06-03 Narrow Broader-Hook Production Extraction Validated
+
+- Validator result: no blocking findings for the narrow production extraction.
+- Validated production scope: feedback/evaluation deferred domain save helpers route through `shared.repository_hooks.call_repository_hook` while preserving permissive missing-hook behavior and callable hook failure propagation.
+- Validated test scope: `tests/test_broader_repository_save_parity.py` and `tests/test_repository_hook_parity.py` lock missing-hook behavior, present-hook saves, retryable failure telemetry, durable JSONL/memory-only side effects, and orchestration hook failure/partial-hook return shapes.
+- Residual non-blocking note: non-callable hook attributes such as `None` are treated as absent by `call_repository_hook`, consistent with the earlier optional-hook contract; callable hook failures still propagate.
+- Final gates: focused feedback/evaluation parity `36 passed`, broader phase-adjacent `112 passed`, full pytest `304 passed`, unittest discovery `139 passed`, lenient health passed, and smoke passed.
+- Strict service health was skipped because Qdrant and Neo4j containers are present but exited.
+- Out of scope and untouched: durable storage save/snapshot/JSON/JSONL wrappers, backend health/runtime adapter dirty changes, connection settings, social-source mapping, evidence-bundle export, and broad telemetry builders.
+- Status: `validated` for the narrow broader-hook production extraction.
+- Finished: true for the completed narrow broader-hook production extraction scope.
 
 ## 2026-06-02 Test Takeover Update
 
@@ -342,7 +574,7 @@ Before starting any new orchestration, worker, validator, tester, or adversarial
 - Date: 2026-06-01
 - Decision: validate only the shared optional repository log/error hook helper slice and keep broader repository save/persistence hooks deferred.
 - Reason: feedback and evaluation had matching optional `add_log`/`save_error` helper behavior that could be centralized with focused parity tests; domain save hooks and orchestration-facing repository behavior remain higher risk.
-- Result: first slice validated; P1.4.2 later completed validation, ranking, synthesis, planning, and orchestration repository hook wiring. Feedback/evaluation domain save hooks and durable wrappers remain deferred.
+- Result: first slice validated; P1.4.2 later completed validation, ranking, synthesis, planning, orchestration, and feedback/evaluation domain save repository hook wiring. Durable wrappers remain deferred.
 
 ### D5 - Make Telemetry Builder Work Test-First
 
@@ -540,31 +772,32 @@ Each task uses this shape:
 - Reviewer/signoff: validator passed P1.4 first slice with no blocking findings
 - Implementation owner: orchestration worker agent
 - Latest result: first slice implementation complete; focused P1.4 pytest passed with 27 tests, phase-adjacent pytest passed with 35 tests, unittest discovery passed with 125 tests, full pytest passed with 242 tests
-- Completion notes: this validated the first slice only. P1.4.2 later completed and validated the narrow ranking, synthesis, validation, planning, and orchestration repository hook extraction; feedback/evaluation domain save hooks and durable persistence wrappers remain deferred until persistence golden tests exist.
+- Completion notes: this validated the first slice only. P1.4.2 later completed and validated ranking, synthesis, validation, planning, orchestration, and feedback/evaluation domain save repository hook extraction; durable persistence wrappers remain deferred until persistence golden tests exist.
 
-### P1.4.2 Narrow Repository Hook Extraction
+### P1.4.2 Repository Hook Extraction
 
 - Status: validated
 - Finished: true
 - Evidence ids: D-02, C-03, summary finding rank 1
-- Affected modules: planning, ranking, validation, synthesis, orchestration runtime
+- Affected modules: planning, ranking, validation, synthesis, orchestration runtime, feedback, evaluation
 - Generalization target: shared repository hook wiring for locked log/error/save-hook behavior
 - Completed scope:
   - ranking and synthesis repository log/error helpers wired through `shared.repository_hooks` with strict `required=True` behavior
   - validation repository log/error/validation/claim helpers wired through permissive `shared.repository_hooks`
   - planning required log hooks and optional claim save wired through `shared.repository_hooks`
   - orchestration runtime adapter log/error hooks wired through permissive `shared.repository_hooks`
-- Deferred scope: feedback/evaluation domain save helpers and durable storage save/snapshot/JSON/JSONL wrappers
+  - feedback/evaluation domain save helpers wired through `shared.repository_hooks.call_repository_hook`
+- Deferred scope: durable storage save/snapshot/JSON/JSONL wrappers
 - Preliminary inventory:
   - `src/shared/repository_hooks.py` currently centralizes optional `add_log` and `save_error` only.
   - Ranking and synthesis originally had local direct `_add_log`/`_save_error` helpers.
   - Validation originally had local optional `_add_log`, `_save_error`, `_save_validation`, and `_save_claim` helpers.
   - Planning and orchestration runtime originally contained direct repository log/error/claim calls.
-  - Feedback and evaluation already use shared log/error helpers from P1.4.1, but their domain save helpers remain separate.
+  - Feedback and evaluation use shared log/error helpers from P1.4.1 and now use `call_repository_hook` for deferred domain save helpers.
   - Storage and durable repositories contain commit/recovery behavior that must be compatibility evidence before broader extraction.
 - Validation gates: parity gate, telemetry gate, persistence gate, review gate
 - Risk level: high
-- Latest result: narrow production extraction implemented and validated. Focused P1.4.2 pytest passed with 59 tests, expanded phase-adjacent pytest passed with 147 tests, unittest discovery passed with 129 tests, and full pytest passed with 268 tests. Validator passed with no blocking behavior findings.
+- Latest result: narrow and broader production extraction implemented and validated. Latest gates passed focused feedback/evaluation parity with 36 tests, broader phase-adjacent pytest with 112 tests, unittest discovery with 139 tests, full pytest with 304 tests, lenient health, and smoke. Validator passed with no blocking behavior findings.
 - Current validation note: 2026-06-02 read-only validation found no failing source/test assertions when using the documented repo-local temp settings, but did find an integration gap in the combined backend script: it requires a local `.venv` and cannot run against the currently discovered sibling validation venv without script changes.
 
 ### P1.5 Telemetry/Event Golden-Output Inventory
@@ -604,7 +837,8 @@ Each task uses this shape:
 ## Next Task Queue
 
 1. `P1.5.2 additional telemetry builders` - deferred high risk, requires golden coverage for decision, metric, retry, success, adapter, retrieval, storage, and enrichment telemetry first.
-2. Domain save and durable repository wrappers - deferred high risk, requires separate persistence golden tests for feedback/evaluation domain saves and storage JSON/JSONL side effects before rollout.
+2. Durable repository wrappers - deferred high risk, requires separate persistence golden tests for storage JSON/JSONL side effects before rollout.
+3. Feedback/evaluation domain save helper extraction - validated for the narrow P1.4.2 broader-hook scope; future durable wrapper work remains deferred.
 
 ## Next Orchestration Agent Brief
 
@@ -614,8 +848,8 @@ Each task uses this shape:
 - Required output:
   - recommended next lane with evidence ids and risk rationale
   - acceptance criteria and validation gates
-  - explicit decision on whether to start P1.5.2 telemetry golden tests or persistence/domain-save golden tests
-  - confirmation that feedback/evaluation domain save hooks and durable wrappers remain deferred until persistence golden tests exist
+  - explicit decision on whether to start P1.5.2 telemetry golden tests or durable persistence golden tests
+  - confirmation that durable wrappers remain deferred until persistence golden tests exist
   - validation commands to run once a lane is implemented
 
 ## P1.4.2 Parity-Test Starting Checklist

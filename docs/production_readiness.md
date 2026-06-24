@@ -4,6 +4,8 @@
 
 Milestone 6 hardens the dependency-free in-memory implementation so production concerns are visible before durable services are introduced. The current code remains standard-library only and does not create external service clients.
 
+For the current cross-repo setup, MARACA production readiness means retrieval backend readiness. Live thestone Telegram bot containers are owned by AI-Art Compose and are documented outside this repo.
+
 ## Readiness Checklist
 
 - Access checks fail closed when source, document, or chunk access metadata is absent.
@@ -48,3 +50,14 @@ The main residual production risk is durable backend parity. When replacing in-m
 The Milestone 6 test suite includes a local load-style regression that builds 120 chunk records, commits vector and sparse indexes, runs hybrid retrieval, and ranks the top results. The target for the dependency-free local path is under 750 ms for retrieval plus ranking on this fixture set.
 
 This is a guardrail, not a production benchmark. Real production latency and cost targets should be remeasured once Qdrant, Neo4j, metadata storage, raw source storage, model services, and orchestration runtimes are connected.
+
+## Environment Readiness
+
+The runtime env contract is sourced from `.env.example`:
+
+- LLM settings: `deepseek-open-art`, `LLM_API_URL`, `LLM_PRIMARY_MODEL`, `LLM_FALLBACK_MODEL`, `LLM_CLASSIFIER_MODEL`, `LLM_EMBEDDING_MODEL`.
+- Qdrant settings: `QDRANT_URL`, `QDRANT_API_KEY`, `QDRANT_COLLECTION`.
+- Neo4j settings: `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD`, `NEO4J_DATABASE`.
+- Local storage/profile settings: `RAG_STORAGE_ROOT`, `RAG_MODEL_PROFILE`.
+
+Strict readiness requires Qdrant and Neo4j to be running before `rag-center-health --strict-services --env-file .env`.

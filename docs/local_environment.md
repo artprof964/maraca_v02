@@ -67,4 +67,15 @@ Latest validated results on 2026-05-29:
 
 The full local environment installs Qdrant client, Neo4j driver, LangGraph, and LlamaIndex core through the `full` extra. External database servers and model service credentials are still runtime integrations; the current tests use injected clients and local fallback paths.
 
-Local Qdrant and Neo4j service definitions live in `docker-compose.yml`. Docker is not installed on the current host, so those containers were not started during this validation run.
+Local Qdrant and Neo4j service definitions live in `docker-compose.yml`. Strict service validation requires those containers to be running from this repo; the latest cross-repo CR normalized this as an environment prerequisite rather than a code blocker.
+
+## Environment Requirements
+
+Use `.env.example` as the source of truth:
+
+- `deepseek-open-art`, `LLM_API_URL`, `LLM_PRIMARY_MODEL`, `LLM_FALLBACK_MODEL`, `LLM_CLASSIFIER_MODEL`, `LLM_EMBEDDING_MODEL`
+- `QDRANT_URL`, `QDRANT_API_KEY`, `QDRANT_COLLECTION`
+- `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD`, `NEO4J_DATABASE`
+- `RAG_STORAGE_ROOT`, `RAG_MODEL_PROFILE`
+
+`deepseek-open-art` is the standard LLM key name used across the connected projects.

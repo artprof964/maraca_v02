@@ -28,6 +28,13 @@ The default service URLs are:
 - Neo4j Bolt: `bolt://localhost:7687`
 - Neo4j Browser: `http://localhost:7474`
 
+Required documented env names from `.env.example`:
+
+- `deepseek-open-art`, `LLM_API_URL`, `LLM_PRIMARY_MODEL`, `LLM_FALLBACK_MODEL`, `LLM_CLASSIFIER_MODEL`, `LLM_EMBEDDING_MODEL`
+- `QDRANT_URL`, `QDRANT_API_KEY`, `QDRANT_COLLECTION`
+- `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD`, `NEO4J_DATABASE`
+- `RAG_STORAGE_ROOT`, `RAG_MODEL_PROFILE`
+
 ## Start Services
 
 Docker is required for the bundled local services:
@@ -85,4 +92,6 @@ PowerShell -ExecutionPolicy Bypass -File scripts\test_full_backend.ps1
 
 ## Current Host Caveat
 
-Docker is not installed on the current host, so Qdrant and Neo4j containers were not started here. The Python clients, injected-client adapters, fallback runtimes, health reporting, setup/test scripts, and short keyword backend path are validated locally.
+Strict service checks require Qdrant and Neo4j containers to be started from this repo's `docker-compose.yml`. The Python clients, injected-client adapters, fallback runtimes, health reporting, setup/test scripts, and short keyword backend path are validated locally; container health is a runtime prerequisite.
+
+Cross-repo boundary: these services support retrieval backend validation only. They are not the live thestone Telegram bot runtime.

@@ -102,6 +102,15 @@ RAG_STORAGE_ROOT=.local/storage
 RAG_MODEL_PROFILE=local-dev
 ```
 
+The full documented env contract also includes:
+
+- LLM: `deepseek-open-art`, `LLM_API_URL`, `LLM_PRIMARY_MODEL`, `LLM_FALLBACK_MODEL`, `LLM_CLASSIFIER_MODEL`, `LLM_EMBEDDING_MODEL`.
+- Qdrant: `QDRANT_URL`, `QDRANT_API_KEY`, `QDRANT_COLLECTION`.
+- Neo4j: `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD`, `NEO4J_DATABASE`.
+- Local storage/profile: `RAG_STORAGE_ROOT`, `RAG_MODEL_PROFILE`.
+
+`deepseek-open-art` is the standard LLM key name. `DEEPSEEK_API_KEY` is only a backward-compatible alias in callers that explicitly support it.
+
 ## Local Setup
 
 ### 1. Create Or Activate A Virtual Environment
@@ -244,3 +253,4 @@ the Docker daemon/API pipe was unavailable on this host.
   clients and local fallback paths.
 - Keep `qdrant-client` and the `qdrant/qdrant` image on compatible minor
   versions when updating the stack.
+- Cross-repo note: MARACA owns retrieval backend requirements only. AI-Art owns the live thestone Telegram bot containers, and `agent_runtime_maraca` owns thestone runtime scripts/snapshots.
